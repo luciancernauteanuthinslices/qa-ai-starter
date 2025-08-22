@@ -1,0 +1,55 @@
+name: e2e
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule: [ { cron: "0 1 * * *" } ]  # nightly
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3]         # parallel shards for nightly
+        shardTotal: [3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npx playwright install --with-deps
+
+      - name: Prepare env
+        run: |
+          mkdir -p env
+          echo "BASE_URL=https://opensource-demo.orangehrmlive.com/" >> env/.env.local
+          echo "TEST_USERNAME=${{ secrets.OHRM_ADMIN_USER }}" >> env/.env.local
+          echo "TEST_PASSWORD=${{ secrets.OHRM_ADMIN_PASS }}" >> env/.env.local
+
+      - name: Run tests (PR=smoke, Nightly=full shards)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npx playwright test -g @smoke
+          else
+            npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+          fi
+
+      - name: Create PR summary
+        if: always()
+        run: node utils/ci-summary.ts
+
+      - name: Upload report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shardIndex }}
+          path: |
+            playwright-report
+            test-results
+
+      - name: Slack (failures only)
+        if: failure() && vars.SLACK_WEBHOOK != ''
+        run: |
+          text="❌ Playwright failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$text\"}" ${{ vars.SLACK_WEBHOOK }}

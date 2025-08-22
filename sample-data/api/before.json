@@ -1,0 +1,10 @@
+{
+  "user": {
+    "id": 1,
+    "name": "Alice",
+    "role": "user"
+  },
+  "featureFlags": {
+    "newDashboard": false
+  }
+}

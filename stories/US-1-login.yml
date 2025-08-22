@@ -1,0 +1,12 @@
+id: US-1
+title: Login as a valid user
+as_a: User
+i_want: to log in to the website
+so_that: I can access my account
+acceptance_criteria:
+  - Given I am on the login page
+  - When I enter a valid email and password
+  - And I press the login button
+  - Then I should see my dashboard
+notes: |
+  Password reset and 2FA are out of scope for this story.

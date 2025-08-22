@@ -1,0 +1,20 @@
+# Playwright artifacts
+playwright-report/
+/playwright/.cache/
+test-results/
+*.zip
+
+# Auth states
+.auth/
+
+# Env
+.env
+
+# Screenshots diffs
+**/*.png
+.DS_Store
+
+node_modules/
+.npm
+
+storageState.json
