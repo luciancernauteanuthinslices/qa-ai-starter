@@ -8,8 +8,8 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: [
-              ['html', { open: 'never' }], 
-              ['json', { outputFile: 'playwright-report/report.json' }]
+              ['html', { outputFolder: 'playwright-report', open: 'never' }],
+              ['json', { outputFile: 'playwright-report/report.json' }],
             ],
   outputDir: 'test-results',
   globalSetup: './fixtures/global-setup',
