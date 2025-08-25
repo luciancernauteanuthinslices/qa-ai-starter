@@ -135,11 +135,3 @@ jobs:
             cat reports/summaries/last.md >> $GITHUB_STEP_SUMMARY
           else
             echo "No summary generated." >> $GITHUB_STEP_SUMMARY
-          fi
-
-      # - name: Slack notify on failure (optional)
-      #   if: failure() && secrets.SLACK_WEBHOOK_URL != ''
-      #   run: |
-      #     text="❌ QA pipeline failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
-      #     curl -X POST -H 'Content-type: application/json' \
-      #       --data "{\"text\":\"$text\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
