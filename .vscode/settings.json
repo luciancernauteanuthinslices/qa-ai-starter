@@ -1,3 +1,15 @@
 {
-    "CodeGPT.apiKey": "OpenAI"
+    "CodeGPT.apiKey": "OpenAI",
+    "json.schemas": [
+        {
+            "fileMatch": ["package.json"],
+            "url": "https://json.schemastore.org/package.json"
+        }
+    ],
+    "json.schemaDownload.enable": false,
+    "files.associations": {
+        "package.json": "json"
+    },
+    "json.validate.enable": false,
+    "json.format.enable": true
 }

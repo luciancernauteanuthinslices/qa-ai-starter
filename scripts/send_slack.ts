@@ -7,8 +7,8 @@ import "dotenv/config";
 const [, , msgArg] = process.argv;
 const msg = msgArg || "Hello from QA automation";
 
-const slack: string | undefined = process.env.SLACK_WEBHOOK_URL;
-const teams: string | undefined = process.env.TEAMS_WEBHOOK_URL;
+const slack: string | undefined = process.env.SLACK_WEBHOOK;
+const teams: string | undefined = process.env.TEAMS_WEBHOOK;
 
 async function post(url: string, text: string): Promise<void> {
   // Slack and Teams both accept `{ text }` as payload
