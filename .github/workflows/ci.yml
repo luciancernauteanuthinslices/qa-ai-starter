@@ -54,6 +54,7 @@ jobs:
           npm ci
           npx playwright install --with-deps
 
+
       - name: Prepare .env file
         run: |
           echo "BASE_URL=${BASE_URL}" > .env
