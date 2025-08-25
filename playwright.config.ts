@@ -7,7 +7,10 @@ export default defineConfig({
   timeout: 30* 1000,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  reporter: [['html', { open: 'never' }], ['json', { outputFile: 'playwright-report/report.json' }]],
+  reporter: [
+              ['html', { open: 'never' }], 
+              ['json', { outputFile: 'playwright-report/report.json' }]
+            ],
   outputDir: 'test-results',
   globalSetup: './fixtures/global-setup',
 

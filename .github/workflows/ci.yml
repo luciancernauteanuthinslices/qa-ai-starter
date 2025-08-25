@@ -90,12 +90,17 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      - name: Run k6 smoke
-        uses: grafana/run-k6-action@v4
+      - uses: grafana/run-k6-action@v1
         with:
-          paths: |
-            scripts/k6/load_test.js
-          arguments: --vus 10 --duration 30s --env BASE_URL=${{ env.BASE_URL }} --out json=reports/performance/k6.json
+          path: scripts/k6/load_test.js
+          flags: --vus 10 --duration 30s --out json=reports/performance/k6.json
+        env: 
+          BASE_URL: ${{ env.BASE_URL }}
+
+        # avoid a “no such file or directory” on the JSON output:
+      - name: Prepare perf folder
+        run: mkdir -p reports/performance
+
 
       # 5) Diffs + Summary (TypeScript scripts cu tsx)
       - name: Visual & API diffs + Summary
@@ -132,9 +137,9 @@ jobs:
             echo "No summary generated." >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Slack notify on failure (optional)
-        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
-        run: |
-          text="❌ QA pipeline failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
-          curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"$text\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
+      # - name: Slack notify on failure (optional)
+      #   if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+      #   run: |
+      #     text="❌ QA pipeline failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
+      #     curl -X POST -H 'Content-type: application/json' \
+      #       --data "{\"text\":\"$text\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
