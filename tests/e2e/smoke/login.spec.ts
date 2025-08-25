@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import LoginPage  from '../../../pages/LoginPage';
+import {DashboardPage}  from '../../../pages/DashboardPage';
 
 
 const userName = process.env.USERNAME!;
@@ -18,6 +19,8 @@ test.describe('@smoke OrangeHRM Demo Admin Login', () => {
   test.use({ storageState: '.auth/admin.json' });
 
   test('Successful login', async ({ page }) => {
-    await loginPage.doLogin(userName, password);
+    const dashboardPage = new DashboardPage(page);
+    // await loginPage.doLogin(userName, password);
+    await dashboardPage.assertHeading();
   })
 });

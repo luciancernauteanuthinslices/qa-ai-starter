@@ -4,10 +4,10 @@ export class DashboardPage {
   heading:Locator;
 
   constructor(private page: Page) {
-    const heading = this.page.getByRole('heading', { name: /dashboard/i });
+    this.heading = this.page.getByRole('heading', { name: /dashboard/i });
   }
 
   async assertHeading() {
-    await expect(this.page.getByRole('heading', { name: /Dashboard/i })).toBeVisible();
+    await expect(this.heading).toBeVisible();
   }
 }

@@ -3,8 +3,9 @@
 import { chromium, FullConfig } from '@playwright/test';
 import * as fs from 'fs'; import * as path from 'path';
 import LoginPage from '../pages/LoginPage';
+
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ override: true });
 
 export default async function globalSetup(_: FullConfig) {
   const dir = path.resolve('.auth'); if (!fs.existsSync(dir)) fs.mkdirSync(dir);
@@ -21,6 +22,7 @@ export default async function globalSetup(_: FullConfig) {
 console.log("Loaded BASE_URL:", process.env.BASE_URL);
   await loginPage.goto(baseURL!);
   await loginPage.doLogin(user, password);
+  await page.waitForLoadState('networkidle');
   // await loginPage.assertLoggedIn();
 
   await page.context().storageState({ path: path.join(dir, 'admin.json') });
