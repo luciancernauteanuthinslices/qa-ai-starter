@@ -58,8 +58,8 @@ jobs:
           mkdir -p env
           echo "BASE_URL=${{ env.BASE_URL }}" >> env/.env.local
           # optional: daca folosesti login din .env
-          if [ -n "${{ secrets.OHRM_ADMIN_USER }}" ]; then echo "TEST_USERNAME=${{ secrets.OHRM_ADMIN_USER }}" >> env/.env.local; fi
-          if [ -n "${{ secrets.OHRM_ADMIN_PASS }}" ]; then echo "TEST_PASSWORD=${{ secrets.OHRM_ADMIN_PASS }}" >> env/.env.local; fi
+          if [ -n "${{ secrets.USERNAME }}" ]; then echo "TEST_USERNAME=${{ secrets.USERNAME }}" >> env/.env.local; fi
+          if [ -n "${{ secrets.PASSWORD }}" ]; then echo "TEST_PASSWORD=${{ secrets.PASSWORD }}" >> env/.env.local; fi
 
       # 1) stories → features → specs (TypeScript scripts, rulate cu tsx)
       - name: Generate tests from stories

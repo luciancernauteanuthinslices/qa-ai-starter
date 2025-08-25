@@ -10,48 +10,31 @@
     "codegen": "npx playwright codegen https://opensource-demo.orangehrmlive.com/",
     "test:visual": "playwright test -g @visual",
     "test:ui:debug": "PWDEBUG=1 playwright test",
-<<<<<<< HEAD
-    "watch:stories": "node --loader ts-node/esm --no-warnings scripts/watch-stories.ts || node scripts/watch-stories.ts",
-    "gen:feature": "node scripts/story_to_feature.ts stories --out features",
-    "gen:spec": "node scripts/feature_to_playwright.ts features --out tests/e2e --lang ts",
-=======
+    "watch:stories": "tsx scripts/watch-stories.ts",
+    "gen:feature": "tsx scripts/story_to_feature.ts stories --out features",
+    "gen:spec": "tsx scripts/feature_to_playwright.ts features --out tests/e2e --lang ts",
     "report": "playwright show-report",
-    "gen:feature": "node scripts/story_to_feature.ts stories features",
-    "gen:spec": "node scripts/feature_to_playwright.ts features tests/e2e",
-    "regression:ui": "node scripts/run_regression_ui.js",
-    "diff:api": "node scripts/api_diff.js",
-    "summarize": "node scripts/summarize.js",
-    "notify": "node scripts/send_slack.js",
-    "perf": "k6 run scripts/k6/load_test.js",
-    "report:kpi": "node scripts/kpi_report.js",
->>>>>>> origin/main
+    "diff:api": "tsx scripts/api_diff.ts",
+    "summarize": "tsx scripts/summarize.ts",
+    "notify": "tsx scripts/send_slack.ts",
+    "report:kpi": "tsx scripts/kpi_report.ts",
     "pipeline:story-to-spec": "npm run gen:feature && npm run gen:spec",
     "test:ui": "playwright test -g @ui || playwright test",
     "test:api": "playwright test tests/api",
     "perf": "node scripts/k6/load_test.js || echo 'Run via CI action'",
-    "report:summary": "node scripts/summarize.ts",
-    "report:kpi": "node scripts/kpi_report.js",
-    "diff:ui": "node scripts/ui_diff.ts",
-    "diff:api": "node scripts/api_diff.ts",
-    "summarize": "node scripts/summarize.ts",
-    "notify": "node scripts/send_slack.js",
+    "report:summary": "tsx scripts/summarize.ts",
+    "diff:ui": "tsx scripts/ui_diff.ts",
     "demo": "npm run test:ui && npm run regression:ui && npm run report:kpi"
   },
-  "devdependencies": {
-    "@playwright/test": "^1.45.0",
-    "dependencies": {
-      "chokidar": "^4.0.3",
-      "@playwright/test": "^1.55.0",
-      "@types/node": "^24.3.0"
-    },
-    "devDependencies": {
-      "@types/node": "^24.3.0",
-      "yaml": "^2.8.1"
-    }
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.0",
-    "dotenv": "^17.2.1"
+    "dotenv": "^16.4.5",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
   }
 }
