@@ -1,0 +1,7 @@
+{
+    "src/pim/": ["@smoke", "@regression", "PIM"],
+    "src/leave/": ["@smoke", "@regression", "LEAVE"],
+    "src/time/": ["@regression", "TIME"],
+    "src/recruitment/": ["@regression", "RECRUITMENT"],
+    "pages/": ["@ui"]
+  }

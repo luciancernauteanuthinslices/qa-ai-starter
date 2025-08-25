@@ -1,55 +1,140 @@
-name: e2e
+name: QA AI Pipeline (stories → tests → UI/API/k6 → summary)
+
 on:
   pull_request:
+    paths:
+      - "stories/**"
+      - "tests/**"
+      - "scripts/**"
+      - "playwright.config.*"
+      - "package.json"
+      - "tsconfig.json"
+  push:
+    branches: [ main, master ]
+    paths:
+      - "stories/**"
+      - "tests/**"
+      - "scripts/**"
+      - "playwright.config.*"
+      - "package.json"
+      - "tsconfig.json"
+  schedule:
+    # Nightly (L-V) pentru detectare automata de regresii
+    - cron: "0 1 * * 1-5"
   workflow_dispatch:
-  schedule: [ { cron: "0 1 * * *" } ]  # nightly
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: qa-ai-pipeline-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  tests:
+  generate-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3]         # parallel shards for nightly
-        shardTotal: [3]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm ci
-      - run: npx playwright install --with-deps
+    env:
+      # BASE_URL pentru OrangeHRM demo (poate fi suprascris din Secrets/Env)
+      BASE_URL: ${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}
 
-      - name: Prepare env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install deps
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Prepare env (.env.local)
         run: |
           mkdir -p env
-          echo "BASE_URL=https://opensource-demo.orangehrmlive.com/" >> env/.env.local
-          echo "TEST_USERNAME=${{ secrets.OHRM_ADMIN_USER }}" >> env/.env.local
-          echo "TEST_PASSWORD=${{ secrets.OHRM_ADMIN_PASS }}" >> env/.env.local
+          echo "BASE_URL=${{ env.BASE_URL }}" >> env/.env.local
+          # optional: daca folosesti login din .env
+          if [ -n "${{ secrets.OHRM_ADMIN_USER }}" ]; then echo "TEST_USERNAME=${{ secrets.OHRM_ADMIN_USER }}" >> env/.env.local; fi
+          if [ -n "${{ secrets.OHRM_ADMIN_PASS }}" ]; then echo "TEST_PASSWORD=${{ secrets.OHRM_ADMIN_PASS }}" >> env/.env.local; fi
 
-      - name: Run tests (PR=smoke, Nightly=full shards)
+      # 1) stories → features → specs (TypeScript scripts, rulate cu tsx)
+      - name: Generate tests from stories
+        run: |
+          npm run pipeline:story-to-spec
+
+      # 2) Ruleaza testele UI
+      - name: Run UI tests (Playwright)
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            npx playwright test -g @smoke
+            # PR: semnal rapid (ex. numai @smoke / @ui)
+            npx playwright test -g "@smoke|@ui" --reporter=html,json
           else
-            npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+            # push/schedule: full suite
+            npx playwright test --reporter=html,json
           fi
 
-      - name: Create PR summary
-        if: always()
-        run: node utils/ci-summary.ts
+      # 3) Ruleaza testele API (daca exista in tests/api)
+      - name: Run API tests (Playwright request)
+        run: |
+          if [ -d "tests/api" ]; then
+            npx playwright test tests/api --reporter=html,json
+          else
+            echo "No tests/api folder, skipping API suite."
+          fi
 
-      - name: Upload report artifacts
+      # 4) k6 perf smoke (foloseste actiunile Grafana)
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 smoke
+        uses: grafana/run-k6-action@v4
+        with:
+          paths: |
+            scripts/k6/load_test.js
+          arguments: --vus 10 --duration 30s --env BASE_URL=${{ env.BASE_URL }} --out json=reports/performance/k6.json
+
+      # 5) Diffs + Summary (TypeScript scripts cu tsx)
+      - name: Visual & API diffs + Summary
+        run: |
+          mkdir -p reports/ui reports/api reports/summaries metrics
+          # sumar diffs UI (cauta *-diff.png in test-results)
+          npm run diff:ui || true
+          # diff API (daca ai baseline/actual pregatite)
+          npm run diff:api || true
+          # sumar executie + flake rate + p95 k6
+          npm run report:summary
+          # KPI weekly CSV
+          npm run report:kpi
+
+      - name: Upload artifacts (Playwright report, diffs, k6, summaries)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shardIndex }}
+          name: qa-artifacts
           path: |
-            playwright-report
-            test-results
+            playwright-report/**
+            test-results/**
+            reports/**
+            metrics/**
+            visual-baseline/**
 
-      - name: Slack (failures only)
-        if: failure() && vars.SLACK_WEBHOOK != ''
+      - name: Post Job Summary (Markdown)
+        if: always()
         run: |
-          text="❌ Playwright failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
+          echo "## QA Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f reports/summaries/last.md ]; then
+            cat reports/summaries/last.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No summary generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Slack notify on failure (optional)
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
+        run: |
+          text="❌ QA pipeline failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"$text\"}" ${{ vars.SLACK_WEBHOOK }}
+            --data "{\"text\":\"$text\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
