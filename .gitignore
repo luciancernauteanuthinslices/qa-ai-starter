@@ -6,6 +6,7 @@ test-results/
 
 # Auth states
 .auth/
+storageState.json
 
 # Env
 .env
@@ -17,4 +18,3 @@ test-results/
 node_modules/
 .npm
 
-storageState.json
