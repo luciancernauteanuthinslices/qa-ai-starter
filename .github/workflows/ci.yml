@@ -23,8 +23,8 @@ jobs:
         run: |
           mkdir -p env
           echo "BASE_URL=https://opensource-demo.orangehrmlive.com/" >> env/.env.local
-          echo "TEST_USERNAME=${{ secrets.OHRM_ADMIN_USER }}" >> env/.env.local
-          echo "TEST_PASSWORD=${{ secrets.OHRM_ADMIN_PASS }}" >> env/.env.local
+          echo "TEST_USERNAME=${{ secrets.USERNAME }}" >> env/.env.local
+          echo "TEST_PASSWORD=${{ secrets.PASSWORD }}" >> env/.env.local
 
       - name: Run tests (PR=smoke, Nightly=full shards)
         run: |
