@@ -81,11 +81,10 @@ jobs:
       - name: Run API tests (Playwright request)
         run: |
           if [ -d "tests/api" ]; then
-            npx playwright test tests/api --reporter=html,"json=playwright-report/report.json"
+            npx playwright test tests/api
           else
             echo "No tests/api folder, skipping API suite."
-          fi
-
+            fi
       # 4) k6 perf smoke
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
