@@ -23,7 +23,6 @@
     "demo": "npm run test:ui && npm run regression:ui && npm run report:kpi"
   },
   "dependencies": {
-    "@playwright/test": "^1.45.0",
     "dotenv": "^16.4.5",
     "js-yaml": "^4.1.0",
     "k6": "^0.0.0",
@@ -31,6 +30,7 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.0"
   }
 }
