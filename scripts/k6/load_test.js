@@ -1,18 +1,18 @@
 import http from 'k6/http';
-import { sleep } from 'k6';
-import { Trend } from 'k6/metrics';
-
-const homeTrend = new Trend('home_response_ms');
+import { sleep, check } from 'k6';
 
 export const options = {
-  vus: Number(__ENV.K6_VUS || 10),
-  duration: __ENV.K6_DURATION || '30s',
+  vus: 10,
+  duration: '30s',
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['p(95)<800']
+  }
 };
 
-const BASE = __ENV.BASE_URL || 'https://example.com';
-
 export default function () {
-  const res = http.get(BASE);
-  homeTrend.add(res.timings.duration);
+  const base = __ENV.BASE_URL || 'https://opensource-demo.orangehrmlive.com';
+  const res = http.get(`${base}/web/index.php/dashboard/index`);
+  check(res, { 'status 200': r => r.status === 200 });
   sleep(1);
 }
