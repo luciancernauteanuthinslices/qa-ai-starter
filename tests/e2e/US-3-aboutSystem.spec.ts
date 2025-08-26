@@ -6,7 +6,7 @@ test('Info About System workflow', async ({ page }) => {
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
 
-  await page.goto('/');
+  await loginPage.goto('/');
   await loginPage.doLogin(process.env.USERNAME!, process.env.PASSWORD!);
   await dashboardPage.assertHeading();
   await dashboardPage.aboutAction();

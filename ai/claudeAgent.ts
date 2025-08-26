@@ -15,7 +15,7 @@ type PromptArgs = {
 
 export async function prompt({ input, system, maxTokens, model }: PromptArgs): Promise<{ response: string }> {
   if (!apiKey) throw new Error('CLAUDE_API_KEY missing');
-  const chosenModel = model || process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-latest';
+  const chosenModel = model || process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
 
   const res = await client.messages.create({
     model: chosenModel,

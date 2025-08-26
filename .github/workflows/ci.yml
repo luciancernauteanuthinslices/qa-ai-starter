@@ -48,6 +48,7 @@ jobs:
       USERNAME: ${{ secrets.USERNAME || 'Admin' }}
       PASSWORD: ${{ secrets.PASSWORD || 'admin123' }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL || 'claude-sonnet-4-20250514' }}
 
     steps:
       - name: Checkout code

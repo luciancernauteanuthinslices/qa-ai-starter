@@ -114,7 +114,7 @@ function collectEnvKeys(): string[] {
   const keys = new Set<string>();
 
   // Common/safe candidates used in the project
-  ['BASE_URL', 'ORANGEHRM_USERNAME', 'ORANGEHRM_PASSWORD', 'USERNAME', 'PASSWORD'].forEach(k => {
+  ['BASE_URL', 'USERNAME', 'PASSWORD'].forEach(k => {
     if (env[k] !== undefined) keys.add(k);
   });
 

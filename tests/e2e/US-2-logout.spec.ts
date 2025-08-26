@@ -9,6 +9,8 @@ test('Logout user workflow', async ({ page }) => {
   await loginPage.goto('/');
   await loginPage.doLogin(process.env.USERNAME!, process.env.PASSWORD!);
   await dashboardPage.assertHeading();
+  
   await dashboardPage.logOutAction();
+  
   await loginPage.assertLoginHeading();
 });
