@@ -65,12 +65,13 @@ jobs:
           npm ci
           npx playwright install --with-deps
 
-      - name: Setup environment
+      - name: Create .env file
         run: |
           echo "BASE_URL=${{ env.BASE_URL }}" > .env
           echo "USERNAME=${{ env.USERNAME }}" >> .env
           echo "PASSWORD=${{ env.PASSWORD }}" >> .env
           echo "ANTHROPIC_API_KEY=${{ env.ANTHROPIC_API_KEY }}" >> .env
+          echo "CLAUDE_MODEL=${{ env.CLAUDE_MODEL }}" >> .env
 
       - name: Generate features from stories
         run: npm run ai:stories
