@@ -42,7 +42,7 @@ jobs:
   qa-pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+    environment: CI
     env:
       BASE_URL: ${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}
       USERNAME: ${{ secrets.USERNAME || 'Admin' }}
