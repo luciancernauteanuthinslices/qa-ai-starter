@@ -1,12 +1,15 @@
 import { test, expect } from '@playwright/test';
-import LoginPage from "../../pages/LoginPage/LoginPage";
 import { DashboardPage } from "../../pages/DashboardPage/DashboardPage";
+import LoginPage from "../../pages/LoginPage/LoginPage";
 
-test('Login as a valid user workflow', async ({ page }) => {
+test('Change Password workflow', async ({ page }) => {
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
 
   await page.goto('/');
   await loginPage.doLogin(process.env.USERNAME!, process.env.PASSWORD!);
   await dashboardPage.assertHeading();
+  
+  await dashboardPage.changePasswordAction();
+  await dashboardPage.assertChangePasswordHeading();
 });

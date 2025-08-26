@@ -1,0 +1,13 @@
+id: US-3
+title: Info About System
+as_a: User
+i_want: to view information about the system
+so_that: I can understand the application details
+then: when I click on my profile picture and click the About button
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on my profile picture
+  - And I click the About button
+  - Then I should see info About application
+notes: |
+  This story focuses on accessing system information through the profile menu.

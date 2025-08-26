@@ -73,12 +73,29 @@ function ensureDirs(f: Flags) {
 
 function readPoms(pagesDir: string, limit = 70_000) {
   if (!fs.existsSync(pagesDir)) return [];
-  const files = fs.readdirSync(pagesDir).filter(f => /\.ts$/i.test(f));
-  return files.map(file => {
-    const full = path.join(pagesDir, file);
-    const code = fs.readFileSync(full, 'utf8').slice(0, limit);
-    return { file, code };
-  });
+  
+  // Read all .ts files recursively from pages directory
+  const pomFiles: { file: string; code: string }[] = [];
+  
+  function readRecursively(dir: string, relativePath = '') {
+    const items = fs.readdirSync(dir);
+    
+    for (const item of items) {
+      const fullPath = path.join(dir, item);
+      const stat = fs.statSync(fullPath);
+      
+      if (stat.isDirectory()) {
+        readRecursively(fullPath, path.join(relativePath, item));
+      } else if (item.endsWith('.ts')) {
+        const code = fs.readFileSync(fullPath, 'utf8').slice(0, limit);
+        const relativeFile = path.join(relativePath, item);
+        pomFiles.push({ file: relativeFile, code });
+      }
+    }
+  }
+  
+  readRecursively(pagesDir);
+  return pomFiles;
 }
 
 function parseTag(text: string, tag: 'path' | 'hint'): string | undefined {
@@ -129,7 +146,6 @@ function buildSystemPrompt(
     'You are a senior QA who writes clean, valid Playwright specs in TypeScript.',
     'Output only code (no explanations, no code fences).',
     'Follow Playwright best practices: no hard waits; rely on auto-waits.',
-    'Selectors priority: getByTestId > getByRole({ name }) > getByLabel > getByText > stable CSS; avoid XPath.',
     'Use page.goto with a relative path so baseURL applies when navigation is needed.',
     'Create one test unless the feature clearly requires multiple scenarios.',
     allowAssert ? 'Assertions are allowed as needed.' : 'Do not add assertions unless explicitly asked.',
@@ -138,8 +154,8 @@ function buildSystemPrompt(
       ? `If any of [${envKeys.join(', ')}] are needed (e.g., credentials/URLs), always reference them via process.env.KEY (do NOT inline).`
       : 'If credentials/URLs are needed, assume they come from process.env.* and do NOT inline values.',
     usePoms
-      ? `Prefer using existing Page Objects. Import them from "${importBase}/<FileNameWithoutExt>". Only fall back to raw locators if a required method/field does not exist.`
-      : 'Ignore POMs.',
+      ? `CRITICAL: Always use existing Page Object methods when available. Import page objects from "${importBase}/<DirectoryName>/<FileName>". Use page object methods like dashboardPage.aboutAction() instead of raw locators. Only use raw locators if no suitable page object method exists.`
+      : 'Use raw locators with priority: getByRole({ name }) > getByLabel > getByText > stable CSS; avoid XPath.',
   ].join(' ');
 }
 
@@ -153,17 +169,21 @@ function buildUserPrompt(
   const head = [
     'Transform the following Gherkin feature into a single VALID Playwright spec.ts file.',
     "Use: import { test, expect } from '@playwright/test';",
-    'If Page Objects are provided, import and use them.',
-    'Prioritize getByRole() / getByText() / getByTestId() when writing raw steps.',
-    'Leverage DOM context (if provided) to choose resilient selectors.',
-    'Random data must be short and compact.',
-    'Keep the code focused on the scenario steps.',
+    'CRITICAL REQUIREMENT: You MUST use Page Object methods when available. DO NOT write raw locators if page object methods exist.',
+    'Step 1: Import required page objects (e.g., import { DashboardPage } from "../../pages/DashboardPage/DashboardPage";)',
+    'Step 2: Initialize page objects in test (e.g., const dashboardPage = new DashboardPage(page);)',
+    'Step 3: Use page object methods for actions and assertions:',
+    '  - Login steps: Use basic page.goto, page.getByLabel for username/password, page.getByRole for login button',
+    '  - Dashboard actions: Use dashboardPage.assertHeading(), dashboardPage.aboutAction(), dashboardPage.supportAction()',
+    '  - Admin actions: Use sidebar.goToAdmin(), sidebar.expectAdminpage()',
+    '  - Assertions: Use page object assert methods like dashboardPage.assertAboutHeading()',
+    'Step 4: Only use raw locators if no suitable page object method exists.',
   ];
   if (extraHint) head.push(`Additional developer hint: ${extraHint}`);
 
   const nav = dom.url ? `DOM context URL: ${dom.url}\nPage title: ${dom.title}` : 'No live DOM context provided.';
   const pomBundle = poms?.length
-    ? `Existing Page Objects (TypeScript, truncated for context):\n\n${poms.map(p => `// ${p.file}\n${p.code}`).join('\n\n')}`
+    ? `Available Page Objects - USE THESE METHODS:\n\n${poms.map(p => `// ${p.file}\n${p.code}`).join('\n\n')}`
     : '(No Page Objects provided)';
 
   return `

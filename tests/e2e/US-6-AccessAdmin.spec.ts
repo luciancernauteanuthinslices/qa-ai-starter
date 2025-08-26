@@ -1,12 +1,17 @@
 import { test, expect } from '@playwright/test';
-import LoginPage from "../../pages/LoginPage/LoginPage";
 import { DashboardPage } from "../../pages/DashboardPage/DashboardPage";
+import LoginPage from "../../pages/LoginPage/LoginPage";
+import Sidebar from "../../pages/Sidebar/Sidebar";
 
-test('Login as a valid user workflow', async ({ page }) => {
+test('Access admin page workflow', async ({ page }) => {
   const loginPage = new LoginPage(page);
   const dashboardPage = new DashboardPage(page);
+  const sidebar = new Sidebar(page);
 
   await page.goto('/');
   await loginPage.doLogin(process.env.USERNAME!, process.env.PASSWORD!);
   await dashboardPage.assertHeading();
+  
+  await sidebar.goToAdmin();
+  await sidebar.expectAdminpage();
 });

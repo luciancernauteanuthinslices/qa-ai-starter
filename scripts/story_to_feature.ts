@@ -37,13 +37,34 @@ function toFeatureFallback(s: Story): string {
   lines.push(`Feature: ${featureTitle}`);
   if (role || goal || value) lines.push(`  As a ${role}, I want ${goal} so that ${value}.`);
   lines.push('');
-  (bullets ?? []).forEach((acc, idx) => {
-    lines.push(`  Scenario: ${acc}`);
-    lines.push(`    Given I am on the application`);
-    lines.push(`    When ${acc}`);
-    lines.push(`    Then I should see a successful outcome`);
-    if (idx < (bullets!.length - 1)) lines.push('');
-  });
+  
+  // Create a single scenario with all acceptance criteria as steps
+  if (bullets && bullets.length > 0) {
+    lines.push(`  Scenario: ${featureTitle} workflow`);
+    
+    bullets.forEach((acc, idx) => {
+      const step = acc.trim();
+      if (step.toLowerCase().startsWith('given')) {
+        lines.push(`    ${step}`);
+      } else if (step.toLowerCase().startsWith('when')) {
+        lines.push(`    ${step}`);
+      } else if (step.toLowerCase().startsWith('and')) {
+        lines.push(`    ${step}`);
+      } else if (step.toLowerCase().startsWith('then')) {
+        lines.push(`    ${step}`);
+      } else {
+        // Default to Given/When/Then based on position
+        if (idx === 0) {
+          lines.push(`    Given ${step}`);
+        } else if (idx === bullets.length - 1) {
+          lines.push(`    Then ${step}`);
+        } else {
+          lines.push(`    And ${step}`);
+        }
+      }
+    });
+  }
+  
   return lines.join('\n');
 }
 

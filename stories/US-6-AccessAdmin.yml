@@ -1,0 +1,12 @@
+id: US-6
+title: Access admin page 
+as_a: User
+i_want: to access the admin 
+so_that: I can access admin settings
+
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on Admin button on the sidebar
+  - Then admin page is accessed
+notes: |
+  This story focuses on accessing the admin page.

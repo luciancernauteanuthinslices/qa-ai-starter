@@ -2,7 +2,7 @@
 // Logs in once with Admin and saves cookies → speeds up every test.
 import { chromium, FullConfig } from '@playwright/test';
 import * as fs from 'fs'; import * as path from 'path';
-import LoginPage from '../pages/LoginPage';
+import LoginPage from '../pages/LoginPage/LoginPage';
 
 import * as dotenv from 'dotenv';
 dotenv.config({ override: true });

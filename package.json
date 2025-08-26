@@ -6,7 +6,6 @@
   "scripts": {
     "ai:specs:all": "tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --pagesDir pages --auth .auth/admin.json",
     "ai:stories": "tsx scripts/story_to_feature.ts stories --out features --ai",
-    "ai:specs:all": "tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --auth .auth/admin.json",
     "pipeline:ai:all": "npm run ai:stories && npm run ai:specs:all",
     "ai:pipeline": "npm run ai:stories && npm run gen:spec",
     "stories": "tsx scripts/story_to_feature.ts stories --out features",
@@ -25,7 +24,6 @@
     "summarize": "tsx scripts/summarize.ts",
     "notify": "tsx scripts/send_slack.ts",
     "report:kpi": "tsx scripts/kpi_report.ts",
-    "pipeline:story-to-spec": "npm run gen:feature && npm run gen:spec",
     "test:ui": "playwright test -g @ui || playwright test",
     "test:api": "playwright test tests/api",
     "perf": "node scripts/k6/load_test.js || echo 'Run via CI action'",
