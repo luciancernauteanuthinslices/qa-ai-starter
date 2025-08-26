@@ -1,0 +1,12 @@
+id: US-7
+title: Access PIM page 
+as_a: User
+i_want: to access the PIM page 
+so_that: I can access PIM settings
+
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on PIM button on the sidebar
+  - Then PIM page is accessed
+notes: |
+  This story focuses on accessing the PIM page.

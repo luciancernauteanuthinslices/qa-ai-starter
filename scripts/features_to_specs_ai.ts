@@ -3,9 +3,9 @@
  * Batch-generate Playwright spec.ts files from ALL .feature files using your AI agent (Claude).
  *
  * Usage:
- *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --pagesDir pages --auth .auth/admin.json
- *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --assert
- *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --hint "Focus on topbar profile dropdown and logout"
+ *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e/generated --pagesDir pages --auth .auth/admin.json
+ *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e/generated --assert
+ *   tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e/generated --hint "Focus on topbar profile dropdown and logout"
  *
  * Optional per-feature tags inside .feature:
  *   @path(/web/index.php/dashboard/index)   # used to capture DOM/a11y for better locators
@@ -44,7 +44,7 @@ function hasFlag(name: string) {
 
 function readFlags(): Flags {
   const featuresDir = getFlag('featuresDir') || 'features';
-  const outDir = getFlag('outDir') || 'tests/e2e';
+  const outDir = getFlag('outDir') || 'tests/e2e/generated';
   const pagesDir = getFlag('pagesDir') || 'pages';
   const usePoms = hasFlag('noPoms') ? false : true; // default ON
 

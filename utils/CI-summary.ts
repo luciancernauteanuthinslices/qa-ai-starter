@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+
 const json = JSON.parse(fs.readFileSync('playwright-report/report.json','utf-8'));
 const total = json.suites?.[0]?.specs?.length ?? 0;
 const failed = json.suites?.[0]?.specs?.filter((s:any)=>s.ok===false).length ?? 0;

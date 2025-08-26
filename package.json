@@ -4,12 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "ai:specs:all": "tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e --pagesDir pages --auth .auth/admin.json",
+    "ai:specs:all": "tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e/generated --pagesDir pages --auth .auth/admin.json",
     "ai:stories": "tsx scripts/story_to_feature.ts stories --out features --ai",
     "pipeline:ai:all": "npm run ai:stories && npm run ai:specs:all",
     "ai:pipeline": "npm run ai:stories && npm run gen:spec",
     "stories": "tsx scripts/story_to_feature.ts stories --out features",
-    "features:specs": "tsx scripts/feature_to_playwright.ts features tests/e2e",
     "test": "playwright test",
     "test:smoke": "playwright test -g @smoke",
     "regression:ui": "node scripts/run_regression_ui.js",
@@ -17,8 +16,6 @@
     "test:visual": "playwright test -g @visual",
     "test:ui:debug": "PWDEBUG=1 playwright test",
     "watch:stories": "tsx scripts/watch-stories.ts",
-    "gen:feature": "tsx scripts/story_to_feature.ts stories --out features",
-    "gen:spec": "tsx scripts/feature_to_playwright.ts features --out tests/e2e --lang ts",
     "report": "playwright show-report",
     "diff:api": "tsx scripts/api_diff.ts",
     "summarize": "tsx scripts/summarize.ts",
@@ -29,7 +26,7 @@
     "perf": "node scripts/k6/load_test.js || echo 'Run via CI action'",
     "report:summary": "tsx scripts/summarize.ts",
     "diff:ui": "tsx scripts/ui_diff.ts",
-    "demo": "npm run test:ui && npm run regression:ui && npm run report:kpi"
+    "demo": "npm run stories &&  npm run ai:specs:all && npm run test && npm playwright test -g @smoke && npm run test:ui && npm run regression:ui && npm run report:kpi && npm run report:summary"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.60.0",

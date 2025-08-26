@@ -193,13 +193,13 @@ npm run notify "Test run completed"
 ### 7. Complete Demo Pipeline
 Run the full testing pipeline:
 ```bash
-# Execute complete demo (UI + regression + reports)
+# Execute complete demo (Generated spec + Smoke + UI + regression + reports + AI summary)
 npm run demo
 ```
 
 ---
 
-## 3) Environment (.env)
+##  Environment (.env)
 
 - `BASE_URL` – site under test (default uses https://example.com)
 - `OPENAI_API_KEY` – optional, enables AI generation & summaries

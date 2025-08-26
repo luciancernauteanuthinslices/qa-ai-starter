@@ -81,28 +81,18 @@ jobs:
         run: npm run ai:specs:all
         continue-on-error: true
 
+      - name: Run generated tests first
+        run: npm run test
+        continue-on-error: true
+
       - name: Run tests
         run: |
-          case "${{ github.event.inputs.test_suite || 'default' }}" in
-            "smoke")
-              npx playwright test --grep "@smoke"
-              ;;
-            "ui")
-              npx playwright test --grep "@ui"
-              ;;
-            "api")
-              npx playwright test tests/api/
-              ;;
-            "visual")
-              npx playwright test --grep "@visual"
-              ;;
-            *)
-              if [ "${{ github.event_name }}" = "pull_request" ]; then
-                npx playwright test --grep "@smoke"
-              else
-                npx playwright test
-              fi
-              ;;
+          case "${{ github.event.inputs.test_suite || 'all' }}" in
+            "smoke")  npx playwright test --grep "@smoke" ;;
+            "ui")     npx playwright test --grep "@ui" ;;
+            "api")    npx playwright test tests/api/ ;;
+            "visual") npx playwright test --grep "@visual" ;;
+            "all"|*)  npx playwright test ;;
           esac
 
       - name: Run performance tests

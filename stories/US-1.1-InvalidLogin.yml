@@ -1,0 +1,15 @@
+id: US-1.1
+title: Sign-in attempt with incorrect password
+as_a: User
+i_want: to log in to the website with invalid credentials
+so_that: I can access my account
+
+acceptance_criteria:
+  - Given I am on the login page
+  - When I enter an invalid email and invalid password
+  - And I press the login button
+  - Then I should see an error saying “Invalid credentials”
+notes: |
+  Password reset and 2FA are out of scope for this story.
+  Use function doLoginWithInvalidCredentials() in Login page to generate invalid username and invalid password
+
