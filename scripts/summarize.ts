@@ -8,20 +8,69 @@ const [,, logPath='reports/test-run.log'] = process.argv;
 
 function heuristicSummarize(text: string): string {
   const lines = text.split(/\r?\n/);
-  const failed = lines.filter(l => /FAIL|Error|Exception/i.test(l)).length;
-  const passed = lines.filter(l => /PASS|✓|passed/i.test(l)).length;
-  const warnings = lines.filter(l => /WARN|Warning/i.test(l)).length;
   
-  return `# Test Run Summary
+  // Enhanced pattern matching for different test frameworks and outputs
+  const passed = lines.filter(l => 
+    /PASS|✓|passed|✅|PASSED|\s+\d+\s+passed/i.test(l) ||
+    /\d+\s+passed/i.test(l)
+  ).length;
+  
+  const failed = lines.filter(l => 
+    /FAIL|Error|Exception|❌|FAILED|\s+\d+\s+failed/i.test(l) ||
+    /\d+\s+failed/i.test(l)
+  ).length;
+  
+  const warnings = lines.filter(l => /WARN|Warning|⚠️/i.test(l)).length;
+  const skipped = lines.filter(l => /SKIP|skipped|⏭️/i.test(l)).length;
+  
+  // Extract test counts from Playwright output
+  const testSummaryMatch = text.match(/(\d+)\s+passed.*?(\d+)\s+failed/i);
+  const playwrightPassed = testSummaryMatch ? parseInt(testSummaryMatch[1]) : 0;
+  const playwrightFailed = testSummaryMatch ? parseInt(testSummaryMatch[2]) : 0;
+  
+  // Extract performance metrics if available
+  const performanceMetrics = extractPerformanceMetrics(text);
+  
+  const totalTests = Math.max(passed + failed, playwrightPassed + playwrightFailed);
+  const actualPassed = Math.max(passed, playwrightPassed);
+  const actualFailed = Math.max(failed, playwrightFailed);
+  
+  return `# QA Pipeline Summary
 
-## Overview
-- **Total lines**: ${lines.length}
-- **Passed**: ${passed}
-- **Failed**: ${failed}
-- **Warnings**: ${warnings}
+## Test Results
+- **Total Tests**: ${totalTests || 'Unknown'}
+- **✅ Passed**: ${actualPassed}
+- **❌ Failed**: ${actualFailed}
+- **⚠️ Warnings**: ${warnings}
+- **⏭️ Skipped**: ${skipped}
+- **📊 Total Log Lines**: ${lines.length}
 
-## Status
-${failed > 0 ? '❌ Tests failed' : passed > 0 ? '✅ All tests passed' : '⚠️ No clear test results found'}`;
+## Overall Status
+${actualFailed > 0 ? '❌ **TESTS FAILED** - Requires attention' : 
+  actualPassed > 0 ? '✅ **ALL TESTS PASSED**' : 
+  '⚠️ **NO CLEAR TEST RESULTS** - Check logs'}
+
+${performanceMetrics ? `## Performance Metrics
+${performanceMetrics}` : ''}
+
+## Next Steps
+${actualFailed > 0 ? '- Review failed test details\n- Check error logs\n- Fix failing tests' : 
+  '- All tests passing\n- Ready for deployment'}`;
+}
+
+function extractPerformanceMetrics(text: string): string {
+  const k6Metrics = text.match(/http_req_duration.*?avg=([0-9.]+[a-z]+)/i);
+  const responseTime = k6Metrics ? k6Metrics[1] : null;
+  
+  const throughput = text.match(/http_reqs.*?(\d+\.?\d*\/s)/i);
+  const requestRate = throughput ? throughput[1] : null;
+  
+  if (responseTime || requestRate) {
+    return `- **Average Response Time**: ${responseTime || 'N/A'}
+- **Request Rate**: ${requestRate || 'N/A'}`;
+  }
+  
+  return '';
 }
 
 async function summarizeWithAI(text: string): Promise<string> {
@@ -32,20 +81,23 @@ async function summarizeWithAI(text: string): Promise<string> {
   }
   
   try {
-    const systemPrompt = `You are a QA lead analyzing test execution logs. Provide a clear, actionable summary in markdown format.
+    const systemPrompt = `You are a QA lead analyzing comprehensive test execution logs from a CI/CD pipeline. Provide a detailed, actionable summary in markdown format.
 
 Focus on:
-- Overall test results (passed/failed counts)
-- Key failures and their causes
-- Performance insights if available
-- Actionable recommendations for the team
+- Overall test results with exact numbers (passed/failed/skipped)
+- Test suite breakdown (generated tests, smoke, UI, API, visual, performance)
+- Key failures and their root causes
+- Performance metrics and bottlenecks
+- Regression analysis results
+- Actionable recommendations prioritized by impact
+- Risk assessment for deployment
 
-Keep it concise but informative.`;
+Structure your response with clear sections and use emojis for visual clarity.`;
 
     const { response } = await aiPrompt({
-      input: `Please analyze this test execution log and provide a summary:\n\n${text.slice(0, 12000)}`,
+      input: `Please analyze this comprehensive QA pipeline execution log and provide a detailed summary. This log contains multiple test suites, performance data, and various reports:\n\n${text.slice(0, 15000)}`,
       system: systemPrompt,
-      maxTokens: 1000
+      maxTokens: 1500
     });
     
     return response || heuristicSummarize(text);

@@ -82,17 +82,20 @@ jobs:
         continue-on-error: true
 
       - name: Run generated tests first
-        run: npm run test
+        run: |
+          mkdir -p reports
+          npm run test 2>&1 | tee reports/generated-tests.log
         continue-on-error: true
 
       - name: Run tests
         run: |
+          mkdir -p reports
           case "${{ github.event.inputs.test_suite || 'all' }}" in
-            "smoke")  npx playwright test --grep "@smoke" ;;
-            "ui")     npx playwright test --grep "@ui" ;;
-            "api")    npx playwright test tests/api/ ;;
-            "visual") npx playwright test --grep "@visual" ;;
-            "all"|*)  npx playwright test ;;
+            "smoke")  npx playwright test --grep "@smoke" 2>&1 | tee reports/smoke-tests.log ;;
+            "ui")     npx playwright test --grep "@ui" 2>&1 | tee reports/ui-tests.log ;;
+            "api")    npx playwright test tests/api/ 2>&1 | tee reports/api-tests.log ;;
+            "visual") npx playwright test --grep "@visual" 2>&1 | tee reports/visual-tests.log ;;
+            "all"|*)  npx playwright test 2>&1 | tee reports/all-tests.log ;;
           esac
 
       - name: Run performance tests
@@ -103,7 +106,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           mkdir -p reports/performance
-          k6 run --vus 5 --duration 30s --out json=reports/performance/k6.json scripts/k6/load_test.js
+          k6 run --vus 5 --duration 30s --out json=reports/performance/k6.json scripts/k6/load_test.js 2>&1 | tee reports/performance-tests.log
         env:
           BASE_URL: ${{ env.BASE_URL }}
         continue-on-error: true
@@ -112,11 +115,41 @@ jobs:
         if: always()
         run: |
           mkdir -p reports/{ui,api,summaries,performance} metrics
-          npm run diff:ui || echo "UI diff skipped"
-          npm run diff:api || echo "API diff skipped"
-          npm run report:summary || echo "Summary generation failed"
-          npm run report:kpi || echo "KPI report failed"
-          npm run regression:ui || echo "UI regression skipped"
+          npm run diff:ui 2>&1 | tee reports/ui-diff.log || echo "UI diff skipped"
+          npm run diff:api 2>&1 | tee reports/api-diff.log || echo "API diff skipped"
+          npm run regression:ui 2>&1 | tee reports/regression.log || echo "UI regression skipped"
+          npm run report:kpi 2>&1 | tee reports/kpi-report.log || echo "KPI report failed"
+
+      - name: Generate comprehensive summary
+        if: always()
+        run: |
+          # Create a master log combining all test outputs
+          echo "# QA Pipeline Execution Summary" > reports/master-log.txt
+          echo "Generated at: $(date)" >> reports/master-log.txt
+          echo "" >> reports/master-log.txt
+          
+          # Combine all test logs
+          for logfile in reports/*.log; do
+            if [ -f "$logfile" ]; then
+              echo "## $(basename $logfile .log | tr '-' ' ' | tr '[:lower:]' '[:upper:]')" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+              cat "$logfile" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+              echo "---" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+            fi
+          done
+          
+          # Add performance data if available
+          if [ -f "reports/performance/k6.json" ]; then
+            echo "## PERFORMANCE METRICS" >> reports/master-log.txt
+            echo "" >> reports/master-log.txt
+            cat reports/performance/k6.json >> reports/master-log.txt
+            echo "" >> reports/master-log.txt
+          fi
+          
+          # Generate AI summary from master log
+          npm run report:summary reports/master-log.txt || echo "AI summary generation failed"
 
       - name: Upload test artifacts
         if: always()
