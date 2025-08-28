@@ -1,5 +1,5 @@
 import { Locator, Page, expect } from '@playwright/test';
-import {DashboardPage} from '../pages/DashboardPage'
+import {DashboardPage} from '../DashboardPage/DashboardPage'
 
 
 export default class LoginPage {
@@ -7,12 +7,14 @@ export default class LoginPage {
   password: Locator;
   loginButton: Locator;
   loginError: Locator;
+  loginHeading: Locator;
 
   constructor(private page: Page) {
     this.username = this.page.getByRole('textbox', { name: 'Username' });
     this.password = this.page.getByRole('textbox', { name: 'Password' });
     this.loginButton = this.page.getByRole('button', { name: 'Login' });
-    this.loginError = this.page.getByRole('alert', {name:'Invalid credentials'});
+    this.loginError = this.page.getByText('Invalid credentials');
+    this.loginHeading = this.page.getByRole('heading', { name: 'Login' });
   }
 
 
@@ -21,6 +23,13 @@ export default class LoginPage {
   async doLogin(u: string , p: string) {
     await this.username.fill(u);
     await this.password.fill(p);
+    await this.page.getByRole('button', { name: 'Login' }).click();
+  }
+
+  async doLoginWithInvalidCredentials(u: string , p: string) {
+    const rand = Date.now().toString();
+    await this.username.fill(u+rand);
+    await this.password.fill(p+rand);
     await this.page.getByRole('button', { name: 'Login' }).click();
   }
   
@@ -32,4 +41,9 @@ export default class LoginPage {
   async expectLoginError(){
     await expect(this.loginError).toBeVisible();
   }
+
+  async assertLoginHeading(){
+    await expect(this.loginHeading).toBeVisible();
+  }
+
 }

@@ -1,0 +1,12 @@
+id: US-2
+title: Logout user
+as_a: User
+i_want: to logout from the website
+so_that: I can securely end my session
+acceptance_criteria:
+  - Given I am logged in and on the dashboard
+  - When I click on my profile picture
+  - And I click the logout button
+  - Then I should be logged out and redirected to login page
+notes: |
+  Password reset and 2FA are out of scope for this story.

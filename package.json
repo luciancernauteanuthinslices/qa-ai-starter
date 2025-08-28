@@ -4,33 +4,42 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "ai:specs:all": "tsx scripts/features_to_specs_ai.ts --featuresDir features --outDir tests/e2e/generated --pagesDir pages --auth .auth/admin.json",
+    "ai:stories": "tsx scripts/story_to_feature.ts stories --out features --ai",
+    "pipeline:ai:all": "npm run ai:stories && npm run ai:specs:all",
+    "ai:pipeline": "npm run ai:stories && npm run gen:spec",
+    "stories": "tsx scripts/story_to_feature.ts stories --out features",
     "test": "playwright test",
-    "test:ui": "playwright test --ui",
     "test:smoke": "playwright test -g @smoke",
+    "regression:ui": "node scripts/run_regression_ui.js",
     "codegen": "npx playwright codegen https://opensource-demo.orangehrmlive.com/",
     "test:visual": "playwright test -g @visual",
     "test:ui:debug": "PWDEBUG=1 playwright test",
+    "watch:stories": "tsx scripts/watch-stories.ts",
     "report": "playwright show-report",
-    "gen:feature": "node scripts/story_to_feature.ts stories features",
-    "gen:spec": "node scripts/feature_to_playwright.ts features tests/e2e",
-    "regression:ui": "node scripts/run_regression_ui.js",
-    "diff:api": "node scripts/api_diff.js",
-    "summarize": "node scripts/summarize.js",
-    "notify": "node scripts/send_slack.js",
-    "perf": "k6 run scripts/k6/load_test.js",
-    "report:kpi": "node scripts/kpi_report.js",
-    "pipeline:story-to-spec": "npm run gen:feature && npm run gen:spec",
-    "demo": "npm run test:ui && npm run regression:ui && npm run report:kpi"
+    "diff:api": "tsx scripts/api_diff.ts",
+    "summarize": "tsx scripts/summarize.ts",
+    "notify": "tsx scripts/send_slack.ts",
+    "report:kpi": "tsx scripts/kpi_report.ts",
+    "test:ui": "playwright test -g @ui || playwright test",
+    "test:api": "playwright test tests/api",
+    "perf": "k6 run scripts/k6/load_test.ts || echo 'Run via CI action'",
+    "report:summary": "tsx scripts/summarize.ts",
+    "diff:ui": "tsx scripts/ui_diff.ts",
+    "demo": "npm run stories &&  npm run ai:specs:all && npm run test && npm playwright test -g @smoke && npm run test:ui && npm run regression:ui && npm run report:kpi && npm run report:summary"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "js-yaml": "^4.1.0",
-    "k6": "^0.0.0",
-    "pixelmatch": "^5.3.0",
-    "pngjs": "^7.0.0"
+    "@anthropic-ai/sdk": "^0.60.0",
+    "chokidar": "^4.0.3",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
-    "@types/node": "^24.3.0"
+    "@types/k6": "^0.52.0",
+    "@types/node": "^24.3.0",
+    "dotenv": "^16.6.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.5.4"
   }
 }

@@ -1,0 +1,13 @@
+id: US-4
+title: User can access Support section
+as_a: User
+i_want: to view Support page
+so_that: I can understand how to use the application
+then: when I click on my profile picture and click the About button
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on my profile picture
+  - And I click the Support button
+  - Then I should see Support page
+notes: |
+  This story focuses on accessing Support page through the profile menu.
