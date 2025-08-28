@@ -1,0 +1,50 @@
+{
+  "status": "PASSED",
+  "timestamp": "2025-08-28T07:13:49.833Z",
+  "environment": "https://opensource-demo.orangehrmlive.com",
+  "runId": "local",
+  "branch": "dev",
+  "duration": 86,
+  "maxVUs": 20,
+  "totalRequests": 494,
+  "metrics": {
+    "responseTimeP95": 349,
+    "errorRate": 0,
+    "checksPassRate": 100,
+    "throughput": 5.74
+  },
+  "thresholds": {
+    "dashboard_load_time": {
+      "passed": true,
+      "value": 334
+    },
+    "http_req_duration{test_type:smoke}": {
+      "passed": true,
+      "value": 247
+    },
+    "login_errors": {
+      "passed": true,
+      "value": 0
+    },
+    "http_req_duration": {
+      "passed": true,
+      "value": 349
+    },
+    "http_req_failed": {
+      "passed": true,
+      "value": 0
+    },
+    "checks": {
+      "passed": true,
+      "value": 100
+    }
+  },
+  "scenarios": {
+    "smoke": {
+      "p95": 247
+    },
+    "default": {
+      "p95": 349
+    }
+  }
+}

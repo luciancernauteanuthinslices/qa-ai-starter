@@ -42,7 +42,12 @@ function parseQASummary(summaryContent: string): SlackAttachment {
   let status = 'unknown';
   let color = '#36a64f'; // green
   
-  // Parse test results
+  // Parse test results and performance metrics
+  let performanceStatus = '';
+  let responseTime = '';
+  let errorRate = '';
+  let throughput = '';
+  
   for (const line of lines) {
     if (line.includes('✅ Passed')) {
       const match = line.match(/(\d+)/);
@@ -63,6 +68,30 @@ function parseQASummary(summaryContent: string): SlackAttachment {
     if (line.includes('TESTS FAILED')) {
       status = 'failed';
       color = '#ff0000'; // red
+    }
+    
+    // Parse performance metrics
+    if (line.includes('Response Time p95:')) {
+      const match = line.match(/Response Time p95: (\d+ms)/);
+      if (match) responseTime = match[1];
+    }
+    if (line.includes('Error Rate:')) {
+      const match = line.match(/Error Rate: ([\d.]+%)/);
+      if (match) errorRate = match[1];
+    }
+    if (line.includes('requests/second')) {
+      const match = line.match(/([\d.]+) requests\/second/);
+      if (match) throughput = `${match[1]} req/s`;
+    }
+    if (line.includes('Performance thresholds met ✅')) {
+      performanceStatus = '✅ Performance OK';
+    }
+    if (line.includes('Performance thresholds failed ❌')) {
+      performanceStatus = '❌ Performance Issues';
+      if (status === 'passed') {
+        status = 'warning';
+        color = '#ff9900'; // orange
+      }
     }
   }
   
@@ -92,6 +121,36 @@ function parseQASummary(summaryContent: string): SlackAttachment {
       short: true
     }
   ];
+  
+  // Add performance metrics if available
+  if (responseTime) {
+    fields.push({
+      title: "Response Time (p95)",
+      value: responseTime,
+      short: true
+    });
+  }
+  if (errorRate) {
+    fields.push({
+      title: "Error Rate",
+      value: errorRate,
+      short: true
+    });
+  }
+  if (throughput) {
+    fields.push({
+      title: "Throughput",
+      value: throughput,
+      short: true
+    });
+  }
+  if (performanceStatus) {
+    fields.push({
+      title: "Performance Status",
+      value: performanceStatus,
+      short: false
+    });
+  }
   
   if (githubRef) {
     fields.push({
@@ -158,7 +217,7 @@ async function postTeams(url: string, text: string): Promise<void> {
     if (slack) {
       const attachment = parseQASummary(summaryContent);
       const slackPayload: SlackPayload = {
-        text: `🤖 *QA AI Pipeline Report* - Run #${githubRunNumber || 'Unknown'}`,
+        text: `*QA AI Pipeline Report* - Run #${githubRunNumber || 'Unknown'}`,
         attachments: [attachment]
       };
       

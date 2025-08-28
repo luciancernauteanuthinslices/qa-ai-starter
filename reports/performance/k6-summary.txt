@@ -1,0 +1,35 @@
+     █ Login Page Access
+
+       ✓ login page loads
+       ✗ login page has form
+        ↳  0% — ✓ 0 / ✗ 242
+
+     █ Dashboard Access
+
+       ✓ dashboard status 200
+       ✗ dashboard has content
+        ↳  0% — ✓ 0 / ✗ 242
+       ✓ response time acceptable
+
+   ✗ checks.........................: 60.00%  ✓ 726      ✗ 484 
+   ✓ dashboard_load_time............: avg=418.706612 min=382      med=414      max=548      p(90)=441.8    p(95)=454.9   
+     data_received..................: 3.0 MB  34 kB/s
+     data_sent......................: 150 kB  1.7 kB/s
+     group_duration.................: avg=329.6ms    min=196.82ms med=393ms    max=596.41ms p(90)=439.91ms p(95)=462.96ms
+     http_req_blocked...............: avg=7.87ms     min=0s       med=0s       max=275.81ms p(90)=0s       p(95)=0s      
+     http_req_connecting............: avg=3.76ms     min=0s       med=0s       max=132.61ms p(90)=0s       p(95)=0s      
+   ✓ http_req_duration..............: avg=211.78ms   min=185.42ms med=209.49ms max=353.8ms  p(90)=228.64ms p(95)=237.8ms 
+       { expected_response:true }...: avg=211.78ms   min=185.42ms med=209.49ms max=353.8ms  p(90)=228.64ms p(95)=237.8ms 
+     ✓ { test_type:smoke }..........: avg=248.25ms   min=204.15ms med=240.37ms max=353.8ms  p(90)=278.62ms p(95)=313.15ms
+   ✓ http_req_failed................: 0.00%   ✓ 0        ✗ 726 
+     http_req_receiving.............: avg=76.16µs    min=0s       med=0s       max=1.54ms   p(90)=414µs    p(95)=485.52µs
+     http_req_sending...............: avg=19.05µs    min=0s       med=0s       max=4.5ms    p(90)=0s       p(95)=0s      
+     http_req_tls_handshaking.......: avg=4.09ms     min=0s       med=0s       max=143.57ms p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=211.69ms   min=184.93ms med=209.46ms max=353.8ms  p(90)=228.59ms p(95)=237.55ms
+     http_reqs......................: 726     8.359563/s
+     iteration_duration.............: avg=2.66s      min=1.63s    med=2.64s    max=4.08s    p(90)=3.46s    p(95)=3.59s   
+     iterations.....................: 242     2.786521/s
+   ✗ login_errors...................: 100.00% ✓ 242      ✗ 0   
+     total_requests.................: 484     5.573042/s
+     vus............................: 4       min=0      max=20
+     vus_max........................: 22      min=22     max=22

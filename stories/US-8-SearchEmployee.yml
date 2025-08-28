@@ -1,0 +1,15 @@
+id: US-8
+title: Search employee 
+as_a: User
+i_want: to access the PIM page 
+so_that: I can search an employee named "Brown"
+
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on PIM button on the sidebar
+  - Then PIM page is accessed
+  - And I can search for an employee named "Brown"
+notes: |
+  This story focuses on searching functionality on the PIM page.
+  Use .auth to skip log in 
+  if locators for PIM page are not found in /pages create PIMpage in /page with locators

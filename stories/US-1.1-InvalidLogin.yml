@@ -11,5 +11,5 @@ acceptance_criteria:
   - Then I should see an error saying “Invalid credentials”
 notes: |
   Password reset and 2FA are out of scope for this story.
-  Use function doLoginWithInvalidCredentials() in Login page to generate invalid username and invalid password
+
 

@@ -27,6 +27,7 @@ export default class Sidebar {
     async goToPIM(){
         await this.PIMButton.click();
     }
+    
     async expectPIMHeading(){
         await expect(this.PIMHeading).toBeVisible()
     }

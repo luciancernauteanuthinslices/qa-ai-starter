@@ -23,7 +23,7 @@
     "report:kpi": "tsx scripts/kpi_report.ts",
     "test:ui": "playwright test -g @ui || playwright test",
     "test:api": "playwright test tests/api",
-    "perf": "node scripts/k6/load_test.js || echo 'Run via CI action'",
+    "perf": "k6 run scripts/k6/load_test.ts || echo 'Run via CI action'",
     "report:summary": "tsx scripts/summarize.ts",
     "diff:ui": "tsx scripts/ui_diff.ts",
     "demo": "npm run stories &&  npm run ai:specs:all && npm run test && npm playwright test -g @smoke && npm run test:ui && npm run regression:ui && npm run report:kpi && npm run report:summary"
@@ -35,8 +35,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
+    "@types/k6": "^0.52.0",
     "@types/node": "^24.3.0",
     "dotenv": "^16.6.1",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "typescript": "^5.5.4"
   }
