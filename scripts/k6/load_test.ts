@@ -2,37 +2,13 @@ import http from 'k6/http';
 import { sleep, check, group } from 'k6';
 import { Rate, Trend, Counter } from 'k6/metrics';
 
-// TypeScript interfaces for k6 data structures
-interface K6Data {
-  state: {
-    testRunDurationMs: number;
-  };
-  metrics: {
-    [key: string]: {
-      values?: {
-        count?: number;
-        rate?: number;
-        'p(95)'?: number;
-        passes?: number;
-        fails?: number;
-        max?: number;
-      };
-      thresholds?: {
-        [key: string]: {
-          ok: boolean;
-        };
-      };
-    };
-  };
-}
-
 // Custom metrics for better tracking
 const loginErrors = new Rate('login_errors');
 const dashboardLoadTime = new Trend('dashboard_load_time');
 const totalRequests = new Counter('total_requests');
 
 // Enhanced options with multiple scenarios
-export const options: any = {
+export const options = {
   scenarios: {
     // Smoke test - basic functionality
     smoke: {
@@ -64,12 +40,12 @@ export const options: any = {
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.10'],        // <10% errors (more lenient)
-    http_req_duration: ['p(95)<3000'],     // 95% under 3s (more lenient)
-    'http_req_duration{test_type:smoke}': ['p(95)<2000'],  // Smoke tests under 2s
-    checks: ['rate>0.90'],                 // >=90% checks pass (more lenient)
-    login_errors: ['rate<0.05'],           // <5% login errors (more lenient)
-    dashboard_load_time: ['p(90)<2000'],   // 90% page loads under 2s
+    http_req_failed: ['rate<0.05'],        // <5% errors
+    http_req_duration: ['p(95)<1500'],     // 95% under 1.5s
+    'http_req_duration{test_type:smoke}': ['p(95)<800'],  // Smoke tests faster
+    checks: ['rate>0.95'],                 // >=95% checks pass
+    login_errors: ['rate<0.02'],           // <2% login errors
+    dashboard_load_time: ['p(90)<1000'],   // 90% dashboard loads under 1s
   },
   tags: { 
     suite: 'performance', 
@@ -80,28 +56,27 @@ export const options: any = {
 };
 
 // Default scenario - basic load test
-export default function (): void {
+export default function () {
   const base = __ENV.BASE_URL || 'https://opensource-demo.orangehrmlive.com';
   
   group('Login Page Access', () => {
     const loginRes = http.get(`${base}/web/index.php/auth/login`);
     const loginOk = check(loginRes, {
       'login page loads': (r) => r.status === 200,
-      'login page has form': (r) => String(r.body).includes('username') || String(r.body).includes('Username') || String(r.body).includes('login'),
+      'login page has form': (r) => String(r.body).includes('username'),
     });
     loginErrors.add(!loginOk);
     totalRequests.add(1);
   });
   
-  group('Public Page Access', () => {
+  group('Dashboard Access', () => {
     const startTime = Date.now();
-    // Test a public page instead of dashboard which requires auth
-    const publicRes = http.get(`${base}/web/index.php/auth/login`);
+    const dashRes = http.get(`${base}/web/index.php/dashboard/index`);
     const loadTime = Date.now() - startTime;
     
-    const publicOk = check(publicRes, {
-      'public page status 200': (r) => r.status === 200,
-      'public page has content': (r) => String(r.body).length > 100,
+    const dashOk = check(dashRes, {
+      'dashboard status 200': (r) => r.status === 200,
+      'dashboard has content': (r) => String(r.body).includes('Dashboard') || String(r.body).includes('dashboard'),
       'response time acceptable': () => loadTime < 2000,
     });
     
@@ -113,7 +88,7 @@ export default function (): void {
 }
 
 // Stress test scenario - more intensive
-export function stressTest(): void {
+export function stressTest() {
   const base = __ENV.BASE_URL || 'https://opensource-demo.orangehrmlive.com';
   
   group('Stress - Multiple Endpoints', () => {
@@ -134,10 +109,39 @@ export function stressTest(): void {
   sleep(0.5); // Shorter sleep for stress test
 }
 
-// Simplified summary - only export JSON
-export function handleSummary(data: K6Data): { [key: string]: string } {
+// Define the shape of our metrics
+type MetricValue = {
+  values: {
+    [key: string]: any;
+    count?: number;
+    rate?: number;
+    passes?: number;
+    fails?: number;
+    'p(95)'?: number;
+  };
+  thresholds?: {
+    [key: string]: {
+      ok: boolean;
+    };
+  };
+};
+
+type K6Data = {
+  metrics: {
+    [key: string]: MetricValue;
+  };
+  state: {
+    testRunDurationMs: number;
+  };
+};
+
+// Simplified summary - only export markdown
+export function handleSummary(data: K6Data) {
+  // Safely calculate max VUs
+  const vuValues = data.metrics?.vus?.values || {};
+  const vuNumbers = Object.values(vuValues).filter((v): v is number => typeof v === 'number');
+  const totalVUs = vuNumbers.length > 0 ? Math.max(...vuNumbers) : 0;
   const totalDuration = Math.round(data.state.testRunDurationMs / 1000);
-  const totalVUs = Math.max(...Object.values(data.metrics.vus?.values || { max: 0 }));
   const totalRequests = data.metrics.http_reqs?.values?.count || 0;
   const errorRate = (data.metrics.http_req_failed?.values?.rate || 0) * 100;
   const p95Duration = Math.round(data.metrics.http_req_duration?.values?.['p(95)'] || 0);
@@ -148,47 +152,54 @@ export function handleSummary(data: K6Data): { [key: string]: string } {
   // Determine overall status
   const thresholdsPassed = Object.values(data.metrics)
     .filter(m => m.thresholds)
-    .every(m => Object.values(m.thresholds || {}).every(t => t.ok));
+    .every(m => Object.values(m.thresholds).every(t => t.ok));
   
   const status = thresholdsPassed && errorRate < 5 && checksRate > 95 ? 'PASSED' : 'FAILED';
+  const statusIcon = status === 'PASSED' ? '✅' : '❌';
   
-  // Create JSON summary
-  const summary = {
-    status,
-    timestamp: new Date().toISOString(),
-    environment: __ENV.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
-    runId: __ENV.GITHUB_RUN_NUMBER || 'local',
-    branch: __ENV.GITHUB_REF_NAME || 'dev',
-    duration: totalDuration,
-    maxVUs: totalVUs,
-    totalRequests,
-    metrics: {
-      responseTimeP95: p95Duration,
-      errorRate: Number(errorRate.toFixed(2)),
-      checksPassRate: Number(checksRate.toFixed(1)),
-      throughput: Number((totalRequests / totalDuration).toFixed(2))
-    },
-    thresholds: Object.entries(data.metrics)
+  // Markdown summary
+  const md = [
+    '# 🚀 k6 Performance Test Summary',
+    '',
+    `**Status:** ${statusIcon} **${status}**`,
+    `**Environment:** ${__ENV.BASE_URL || 'https://opensource-demo.orangehrmlive.com'}`,
+    `**Duration:** ${totalDuration}s | **Max VUs:** ${totalVUs} | **Total Requests:** ${totalRequests}`,
+    `**Run ID:** ${__ENV.GITHUB_RUN_NUMBER || 'local'} | **Branch:** ${__ENV.GITHUB_REF_NAME || 'dev'}`,
+    '',
+    '## 📊 Key Performance Metrics',
+    `- **Response Time (p95):** ${p95Duration}ms`,
+    `- **Error Rate:** ${errorRate.toFixed(2)}%`,
+    `- **Checks Passed:** ${checksPass}/${checksPass + checksFail} (${checksRate.toFixed(1)}%)`,
+    `- **Throughput:** ${(totalRequests / totalDuration).toFixed(2)} req/s`,
+    '',
+    '## 🎯 Threshold Results',
+    Object.entries(data.metrics)
       .filter(([_, m]) => m.thresholds)
-      .reduce((acc, [name, m]) => {
-        const passed = Object.values(m.thresholds || {}).every(t => t.ok);
-        const value = m.values?.rate !== undefined ? Number((m.values.rate * 100).toFixed(2)) :
-                     m.values?.['p(95)'] !== undefined ? Math.round(m.values['p(95)']) :
-                     m.values?.count !== undefined ? m.values.count : null;
-        acc[name] = { passed, value };
-        return acc;
-      }, {} as Record<string, { passed: boolean; value: number | null }>),
-    scenarios: Object.entries(data.metrics)
+      .map(([name, m]) => {
+        const results = Object.values(m.thresholds).map(t => t.ok ? '✅' : '❌').join(' ');
+        const value = m.values?.rate !== undefined ? `${(m.values.rate * 100).toFixed(2)}%` :
+                     m.values?.['p(95)'] !== undefined ? `${Math.round(m.values['p(95)'])}ms` :
+                     m.values?.count !== undefined ? m.values.count.toString() : 'N/A';
+        return `- **${name}**: ${results} (${value})`;
+      })
+      .join('\n') || '- No thresholds defined',
+    '',
+    '## 📈 Scenario Breakdown',
+    Object.entries(data.metrics)
       .filter(([name]) => name.includes('http_req_duration{'))
-      .reduce((acc, [name, m]) => {
+      .map(([name, m]) => {
         const scenario = name.match(/test_type:([^}]+)/)?.[1] || 'default';
         const p95 = Math.round(m.values?.['p(95)'] || 0);
-        acc[scenario] = { p95 };
-        return acc;
-      }, {} as Record<string, { p95: number }>)
-  };
+        return `- **${scenario.toUpperCase()}**: p95 = ${p95}ms`;
+      })
+      .join('\n') || '- Single scenario executed',
+    '',
+    status === 'FAILED' ? '## ⚠️ Performance Issues Detected\n- Review error rates and response times\n- Check application performance\n- Consider scaling resources\n' : '## ✅ Performance Targets Met\n- All thresholds passed\n- Application performing within acceptable limits\n',
+    '---',
+    `*Generated at: ${new Date().toISOString()}*`
+  ].join('\n');
   
   return {
-    'reports/performance/k6-summary.json': JSON.stringify(summary, null, 2)
+    'reports/performance/k6-summary.md': md
   };
 }

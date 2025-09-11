@@ -1,7 +1,7 @@
 import {test} from '@playwright/test'
 import { prompt as aiPrompt } from '../ai/claudeAgent';
 
-test('Playing around with promting ', async ({page})=>{
+test('Playing around with prompting ', async ({page})=>{
   const url = 'https://opensource-demo.orangehrmlive.com/web/index.php/auth/login'
     await page.goto(url);
     const { response } = await aiPrompt({

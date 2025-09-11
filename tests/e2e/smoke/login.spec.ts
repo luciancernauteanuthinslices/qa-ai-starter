@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
-import LoginPage  from '../../../pages/LoginPage/LoginPage';
-import {DashboardPage}  from '../../../pages/DashboardPage/DashboardPage';
-
+import LoginPage from '../../../pages/LoginPage/LoginPage';
+import { DashboardPage } from '../../../pages/DashboardPage/DashboardPage';
 
 const userName = process.env.USERNAME!;
 const password = process.env.PASSWORD!;

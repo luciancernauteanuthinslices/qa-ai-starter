@@ -1,0 +1,89 @@
+Month 1 – Exploration & Fundamentals
+Objective: Build an AI culture in QA and choose clear processes where AI adds value.
+
+[I] Weeks 1–2: Training & awareness
+  - Internal workshop: “How we use AI in QA” (hands-on with Playwright, and ChatGPT/Copilot).
+  - Demos: generating test cases from user stories, creating spec.ts for Playwright, auto-documenting the test plan.
+
+Detailed plan – Week 1 (setup):
+  Tools:
+    - Playwright (JS/TS), installed on the existing test repo.
+    - GitHub Actions (CI/CD).
+    - OpenAI API / Copilot for code generation.
+  Activities:
+    - Hands-on workshop: write a simple login test in Playwright → then generate it with ChatGPT.
+    - Comparison: manually written test vs AI-generated.
+  Deliverable: 1 functional login test, validated by the team.
+
+Detailed plan – Week 2 (Test Case generation):
+  Tools:
+    - AI prompts → conversion from user stories (e.g., JIRA / Confluence).
+    - .feature export (Cucumber).
+  Activities:
+    - QA writes 2–3 real user stories.
+    - AI generates test cases → the team validates and corrects them.
+  Deliverable: 10 generated test cases mapped in Playwright.
+  KPI: At least 20% reduction in authoring time.
+
+[II] Weeks 3–4: Select pilot processes
+  - Choose two clear areas:
+    1) Test design → automatic generation of test cases from requirements.
+    2) Test execution → AI agent that runs and compares logs/UI.
+  - Define initial KPIs:
+    - 20% reduction in time to create test cases,
+    - detection of at least 30% of regression bugs without manual input.
+
+  Detailed plan – Week 3 (Regression setup):
+    Tools:
+      - Playwright Test Runner.
+      - pixelmatch (Node package for screenshot diff).
+    Activities:
+      - Set up a screenshot baseline for 3 pages.
+      - Configure AI to interpret results (ChatGPT can summarize “what changed”).
+    Deliverable: 1 report with visual differences explained in natural language.
+
+  Detailed plan – Week 4 (Final pilot selection):
+    Tools:
+      - JIRA Dashboard.
+    Activities:
+      - Choose the 2 pilot processes:
+        1) Test case generation → Playwright.
+        2) Regression automation with AI diff.
+    Deliverable: “Pilot Scope” document + measured KPIs.
+
+
+Month 2 – Piloting & Integration
+Objective: Implement AI in repetitive tasks and measure the impact.
+
+Weeks 5–6: Test case generation
+  - AI integration for conversion: user stories → test scenarios → .feature files → Playwright specs.
+  - Human QA validates → feed the feedback back to the model.
+
+Detailed plan – Weeks 5–6 (AI Test Case Generator):
+  Tools:
+    - Custom script: JIRA API → extract stories → send to OpenAI → receive a .feature file.
+    - Playwright + Cucumber adapter.
+  Activities:
+    - Run the pipeline: new story → generated test file → human review.
+    - QA validates and marks differences.
+  Deliverable: 1 semi-automated “story → test” pipeline.
+  KPI: 25% time reduction.
+
+Weeks 7–8: Regression automation with AI agent
+  - AI compares:
+    - UI screenshots across versions,
+    - API responses (JSON diff),
+    - logs and performance metrics.
+  - Automatically summarized reports are created for the team.
+  - Measurement: how many regression bugs does AI catch vs. manual QA?
+
+Detailed plan – Weeks 7–8 (Regression with AI agent):
+  Tools:
+    - Playwright + pixelmatch.
+    - JSON diff (json-diff NPM).
+    - ChatGPT API → log summarization.
+  Activities:
+    - Run weekly regressions on UI and API.
+    - AI produces a summarized report: “eg. 3 pages affected, minor layout differences, 1 API response changed”.
+  Deliverable: Automatically generated report sent to Slack/Teams.
+  KPI: AI catches >30% of regressions without manual input.

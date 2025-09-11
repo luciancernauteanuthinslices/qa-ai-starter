@@ -1,0 +1,48 @@
+{
+  "pages": [
+    {
+      "url": "https://opensource-demo.orangehrmlive.com/web/index.php/leave/viewMyLeaveList",
+      "name": "LeaveListPage",
+      "description": "Page for viewing and managing leave requests"
+    },
+    {
+      "url": "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index",
+      "name": "DashboardPage",
+      "description": "Main dashboard page"
+    },
+    {
+      "url": "https://opensource-demo.orangehrmlive.com/web/index.php/leave/applyLeave",
+      "name": "ApplyLeavePage",
+      "description": "Page for applying for leave"
+    },
+    {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewEmployeeList",
+        "name": "PIM",
+        "description": "Page to see employee List"
+      },
+      {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/addEmployee",
+        "name": "PIM",
+        "description": "Page for adding an employee"
+      },
+      {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewDefinedPredefinedReports",
+        "name": "PIM",
+        "description": "Page for Creating Dynamic Reports"
+      },
+      {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/time/viewEmployeeTimesheet",
+        "name": "Time",
+        "description": "Page for user Timesheets"
+      },
+      {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/buzz/viewBuzz",
+        "name": "Buzz",
+        "description": "Page for writing and posting messages to Dashboard"
+      }
+  ],
+  "auth": {
+    "storageState": ".auth/admin.json"
+  },
+  "outputDir": "pages"
+}

@@ -1,5 +1,4 @@
 import { Locator, Page, expect } from '@playwright/test';
-import {DashboardPage} from '../DashboardPage/DashboardPage'
 
 
 export default class LoginPage {

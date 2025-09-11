@@ -1,0 +1,19 @@
+id: US-10
+title: Add new employee 
+as_a: User
+i_want: to access the PIM page 
+so_that: I can add an employee named "Brown"
+
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on PIM button on the sidebar
+  - Then PIM page is accessed
+  - And I can add and save a new employee using random mock data for each input field
+  - Then I should see Personal Details page
+  - And I can see the employee name in the PIM -> Employee List tab
+
+notes: |
+  This story focuses on adding new user in the PIM page.
+  Use mock data to fill random data in the input fields
+  Use .auth to skip log in 
+  if locators for PIM page are not found in /pages create PIM page in /page with locators

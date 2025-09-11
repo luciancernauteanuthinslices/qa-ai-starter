@@ -1,7 +1,7 @@
 import { Locator, Page, expect } from '@playwright/test';
 
 
-export default class Sidebar {
+export class Sidebar {
     hideSideBar: Locator;
     showSidebar: Locator;
     adminButton: Locator;

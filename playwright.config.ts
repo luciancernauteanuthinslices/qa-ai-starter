@@ -16,10 +16,11 @@ export default defineConfig({
     ['json', { outputFile: 'playwright-report/report.json' }],
   ],
   outputDir: 'test-results',
-  globalSetup: './fixtures/global-setup',
+  globalSetup: './fixtures/global-setup.ts',
+  globalTeardown: './fixtures/global-teardown.ts',
 
   use: {
-    baseURL: process.env.BASE_URL!,     // now guaranteed to be loaded
+    baseURL: process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
