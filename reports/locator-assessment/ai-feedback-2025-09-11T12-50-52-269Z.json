@@ -1,0 +1,263 @@
+{
+  "timestamp": "2025-09-11T12:50:52.271Z",
+  "summary": {
+    "totalFiles": 4,
+    "totalLocators": 25,
+    "averageScore": 6.96,
+    "criticalIssues": 1
+  },
+  "assessments": [
+    {
+      "specFile": "US-1-login.spec.ts",
+      "assessments": [
+        {
+          "originalLocator": "input[name=\"username\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Use robust locator strategy with multiple fallbacks",
+          "context": "Line 21"
+        },
+        {
+          "originalLocator": "input[name=\"password\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Use robust locator strategy with multiple fallbacks",
+          "context": "Line 22"
+        },
+        {
+          "originalLocator": "button[type=\"submit\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Use robust locator strategy with multiple fallbacks",
+          "context": "Line 23"
+        },
+        {
+          "originalLocator": "h6:has-text(\"Dashboard",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"h6:has-text(\"Dashboard >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for h6:has-text(\"Dashboard >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Verify dashboard elements with fallback locators",
+          "context": "Line 38",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator `h6:has-text(\"Dashboard\")` has multiple critical issues:\n- Syntax error in `has-text()` method\n- Incomplete/incorrect string matching\n- Relies on HTML tag, which is fragile\n- No error handling or specificity\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Approaches (in order of preference):\n\n// 1. Preferred: Data Test ID (Recommended)\npage.getByTestId('dashboard-title')\n\n// 2. Accessible Role with Text\npage.getByRole('heading', { \n  name: 'Dashboard', \n  level: 6 \n})\n\n// 3. Text-based Locator with Strict Matching\npage.getByText('Dashboard', { exact: true })\n```\n\n### 💡 Best Practices\n- Add `data-testid` to element in application code\n- Use semantic roles for better accessibility\n- Implement exact text matching\n- Avoid brittle CSS/HTML tag selectors\n\n### 🛡️ Resilience Improvements\n- Adds semantic meaning\n- Decouples from HTML structure\n- Improves test maintainability\n- Enhances accessibility testing\n\n### 🔧 Implementation Recommendation\n1. Update component to include `data-testid`\n2. Prefer role-based locators\n3. Use exact text matching\n4. Add fallback locators\n\n### ⚠️ Potential Refactoring\n```typescript\n// Enhanced locator with fallback\nconst dashboardTitle = page.getByTestId('dashboard-title')\n  .or(page.getByRole('heading', { name: 'Dashboard' }))\n  .first()\n\nawait expect(dashboardTitle).toBeVisible()\n```\n\n### 🏆 Key Takeaways\n- Prioritize semantic, stable locators\n- Use test IDs for maximum reliability\n- Implement role-based locator strategies\n- Always provide fallback mechanisms"
+        },
+        {
+          "originalLocator": ".oxd-topbar-header-title",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.oxd-topbar-header-title').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Additional URL and element assertions",
+          "context": "Line 42",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause\nThe current `.oxd-topbar-header-title` CSS class-based locator is:\n- Fragile and dependent on UI implementation\n- Potentially slow to resolve\n- Lacks semantic meaning\n- Prone to breaking with minor UI changes\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Approach\npage.getByRole('heading', { name: /Dashboard/i })\n```\n\n### 🛠 Optimization Rationale\n- Uses semantic `getByRole()` with accessible name\n- More resilient to CSS class changes\n- Matches actual page semantics\n- Provides better accessibility and reliability\n- Follows Playwright best practices\n\n### 💡 Enhanced Locator Techniques\n1. Prioritize semantic roles\n2. Use case-insensitive text matching\n3. Avoid overly specific selectors\n4. Leverage built-in Playwright accessibility methods\n\n### 🔒 Code Implementation\n```typescript\n// Before\nawait page.locator('.oxd-topbar-header-title').first().waitFor()\n\n// After\nawait page.getByRole('heading', { name: /Dashboard/i }).waitFor()\n```\n\n### 🏆 Best Practices\n- Use role-based locators\n- Add data-testid attributes if possible\n- Implement fallback locator strategies\n- Keep locators simple and meaningful\n\n### ⚠️ Performance Impact\n- Faster element resolution\n- More consistent cross-browser behavior\n- Reduced test maintenance overhead"
+        },
+        {
+          "originalLocator": "h5:has-text(\"Login",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"h5:has-text(\"Login >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for h5:has-text(\"Login >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Robust locator strategies for login page",
+          "context": "Line 47",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator `h5:has-text(\"Login\")` has multiple critical issues:\n- Syntax error in CSS selector\n- Incomplete quote escaping\n- Fragile text-based selection\n- No specific identification mechanism\n\n### 🚀 Recommended Locator Strategy\n\n**Priority Approach:**\n1. Add `data-testid` attribute (Recommended)\n```typescript\n// In React/Vue component\n<h5 data-testid=\"login-header\">Login</h5>\n\n// In Playwright test\npage.getByTestId('login-header')\n```\n\n2. Fallback: Role-based locator\n```typescript\npage.getByRole('heading', { \n  name: 'Login', \n  level: 5 \n})\n```\n\n### 🛡️ Best Practices\n- Use semantic, stable identifiers\n- Prefer test-specific attributes\n- Leverage accessibility roles\n- Avoid fragile text/CSS selectors\n\n### 🔬 Performance & Maintainability\n- `data-testid` provides:\n  - 100% reliable selection\n  - Decoupled from visual structure\n  - Easy to update\n  - Fast locator resolution\n\n### 💡 Recommendation\nImplement `data-testid` as primary strategy with role-based fallback."
+        },
+        {
+          "originalLocator": "input[name=\"username\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Robust locator strategies for login page",
+          "context": "Line 48"
+        },
+        {
+          "originalLocator": "input[name=\"password\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Robust locator strategies for login page",
+          "context": "Line 49"
+        },
+        {
+          "originalLocator": "button[type=\"submit\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Unknown purpose",
+          "context": "Line 50"
+        }
+      ]
+    },
+    {
+      "specFile": "US-10-AccessAdmin.spec.ts",
+      "assessments": [
+        {
+          "originalLocator": ".oxd-layout-container",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.oxd-layout-container').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Wait for dashboard to load with multiple strategies",
+          "context": "Line 24 (waitForSelector)",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause\n- Generic CSS class `.oxd-layout-container` is:\n  - Potentially non-unique\n  - Lacks specificity\n  - Might be dynamically generated\n  - Vulnerable to UI changes\n\n### 🚀 Improved Locator Strategy\n```typescript\n// Recommended Approaches (in order of preference)\npage.getByRole('main')  // Semantic HTML role\n// OR\npage.getByTestId('dashboard-container')  // Recommended if possible to add attribute\n// OR\npage.locator('[data-test-id=\"admin-dashboard\"]')\n```\n\n### 🛠 Best Practices\n1. Prefer semantic roles over CSS classes\n2. Add `data-testid` attributes in application code\n3. Use unique, stable identifiers\n4. Combine multiple locator strategies for resilience\n\n### 💡 Enhanced Wait Strategy\n```typescript\n// Improved wait with multiple strategies\nawait page.getByRole('main', { \n  name: 'Admin Dashboard' \n}).waitFor({ \n  state: 'visible', \n  timeout: 10000 \n});\n```\n\n### 🔒 Recommendations\n- Collaborate with developers to add test-specific attributes\n- Use role-based locators\n- Implement fallback locator strategies\n- Log detailed wait failures for debugging\n\n### ⚠️ Potential Fixes\n1. Add `data-testid=\"admin-dashboard\"` in application\n2. Use semantic HTML roles\n3. Implement more robust wait conditions\n\n### 🏆 Locator Reliability Score\n- Current: ★☆☆☆☆ (Low)\n- Proposed: ★★★★☆ (High)"
+        },
+        {
+          "originalLocator": "a.oxd-main-menu-item:has-text(\"My Info",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"a.oxd-main-menu-item:has-text(\"My Info >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for a.oxd-main-menu-item:has-text(\"My Info >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Act: Navigate to My Info page with robust locator",
+          "context": "Line 32",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator has multiple issues:\n- Syntax error in `:has-text()` method\n- Incomplete string quotation\n- Fragile CSS selector approach\n- Potential text matching inconsistency\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Locator Approaches (Prioritized)\npage.getByRole('link', { name: 'My Info' })  // Best Practice\n// OR\npage.getByText('My Info', { exact: true })   // Alternative\n```\n\n### 🛠 Optimization Recommendations\n1. **Preferred Method:** Use `getByRole()` \n   - More semantically meaningful\n   - Accessibility-driven\n   - More robust than text/CSS selectors\n\n2. **Fallback Method:** `getByText()`\n   - Use `{ exact: true }` for precise matching\n   - Prevents partial text match issues\n\n### 💡 Implementation Example\n```typescript\n// US-10-AccessAdmin.spec.ts\ntest('Navigate to My Info', async ({ page }) => {\n  // Robust, accessible navigation\n  await page.getByRole('link', { name: 'My Info' }).click();\n  \n  // Optional: Add wait/assertion\n  await expect(page).toHaveURL(/my-info/);\n});\n```\n\n### 🔒 Key Improvements\n- ✅ Accessibility-first approach\n- ✅ More predictable text matching\n- ✅ Reduced fragility\n- ✅ Better test maintainability\n\n### 📊 Locator Performance Ranking\n1. `data-testid` (Highest)\n2. `getByRole()` ⭐ (Recommended)\n3. `getByText()`\n4. CSS Selectors (Lowest)"
+        },
+        {
+          "originalLocator": "h6:has-text(",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"h6:has-text(\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for h6:has-text( >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Wait for page load with multiple strategies",
+          "context": "Line 38 (waitForSelector)",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause\nThe current locator is syntactically incomplete and invalid. The `h6:has-text(` appears to be a fragment of a locator, missing closing parenthesis and proper text matching. This causes parsing errors and prevents reliable element location.\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Preferred: Add data-testid attribute in HTML\n// HTML: <h6 data-testid=\"page-title\">Admin Dashboard</h6>\nawait page.getByTestId('page-title').waitFor();\n\n// Alternative 1: Use getByRole with accessible name\nawait page.getByRole('heading', { name: 'Admin Dashboard' }).waitFor();\n\n// Alternative 2: Precise text matching\nawait page.getByText('Admin Dashboard', { exact: true }).waitFor();\n```\n\n### 🛠 Locator Recommendations\n1. Prioritize `data-testid` for most stable selection\n2. Use semantic `getByRole()` for accessibility\n3. Ensure unique, exact text matching\n4. Avoid CSS/complex selectors when possible\n\n### 💡 Best Practices\n- Add `data-testid` attributes during development\n- Prefer semantic locators over fragile selectors\n- Use `waitFor()` with clear, unique identifiers\n- Handle dynamic content with robust strategies\n\n### ⚠️ Performance Note\n- `getByTestId()` is fastest\n- `getByRole()` provides accessibility benefits\n- Avoid overly complex selector parsing"
+        },
+        {
+          "originalLocator": "h6:has-text(\"Personal Details",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"h6:has-text(\"Personal Details >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for h6:has-text(\"Personal Details >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Assert: Verify My Info page is accessed",
+          "context": "Line 41",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator has multiple issues:\n- Syntax error in `has-text()` method\n- Missing closing quote\n- Potential fragility in text-based selection\n- Improper escaping of special characters\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Approaches (Prioritized):\n\n// 1. Preferred: Data Test ID (Recommended)\npage.getByTestId('personal-details-header')\n\n// 2. Accessible Role-Based\npage.getByRole('heading', { name: 'Personal Details' })\n\n// 3. Text-Based (if no test ID available)\npage.getByText('Personal Details', { exact: true })\n```\n\n### 🛠 Best Practices\n- Add `data-testid` to element in source code\n- Use exact text matching\n- Leverage semantic roles\n- Minimize CSS selector complexity\n\n### 💡 Implementation Recommendation\n```typescript\n// In component/page\n<h6 data-testid=\"personal-details-header\">Personal Details</h6>\n\n// In test\nawait expect(page.getByTestId('personal-details-header')).toBeVisible()\n```\n\n### 🔒 Resilience Factors\n- Decouples tests from UI implementation\n- Provides stable, intention-revealing locators\n- Improves test maintainability\n- Enhances accessibility\n\n### ⚠️ Performance Note\n- `data-testid` has minimal runtime overhead\n- Role-based locators are highly performant\n- Avoid complex CSS selectors"
+        }
+      ]
+    },
+    {
+      "specFile": "US-10-CreateNewEmployee.spec.ts",
+      "assessments": [
+        {
+          "originalLocator": "button:has-text(\"Add",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"button:has-text(\"Add >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for button:has-text(\"Add >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Wait and click Add button with robust selector",
+          "context": "Line 33",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator `button:has-text(\"Add`)` is syntactically incorrect:\n- Unescaped quotes causing parsing error\n- Incomplete text matching\n- Potential ambiguity with multiple \"Add\" buttons\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Locator Approaches (Prioritized)\n\n// 1. Preferred: data-testid (Most Recommended)\npage.getByTestId('add-employee-button')\n\n// 2. Accessible Role Approach\npage.getByRole('button', { name: 'Add Employee' })\n\n// 3. Text-based Fallback\npage.getByText('Add', { exact: true }).first()\n```\n\n### 💡 Best Practices\n- Use semantic, unique identifiers\n- Leverage built-in Playwright methods\n- Ensure test stability with precise matching\n- Prioritize accessibility-driven selectors\n\n### 🛠 Implementation Recommendations\n1. Add `data-testid` in application code\n2. Use explicit, case-sensitive text matching\n3. Leverage semantic roles\n4. Add `nth=0` or `.first()` cautiously\n\n### ⚠️ Code Quality Tip\n```typescript\n// Bad: Fragile selector\npage.locator('button:has-text(\"Add\")')\n\n// Good: Robust, maintainable selector\npage.getByRole('button', { \n  name: 'Add Employee', \n  exact: true \n})\n```\n\n### 🎯 Locator Optimization Score\n- Resilience: ★★★★☆\n- Performance: ★★★★★\n- Maintainability: ★★★★★"
+        },
+        {
+          "originalLocator": "input[placeholder=\"First Name\"]",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder=\"First Name\"]').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Fill employee details with robust locators",
+          "context": "Line 38",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\n- Attribute-based selector (`placeholder`) is fragile\n- Potential issues:\n  - Dynamic placeholder text\n  - Slow rendering of input element\n  - Lack of explicit wait mechanism\n  - No unique identifier for the element\n\n### 🚀 Recommended Locator Strategy\n\n#### Preferred Approach: `data-testid`\n```typescript\n// Recommended Implementation\nawait page.getByTestId('first-name-input').fill('John');\n```\n\n#### Alternative Approaches:\n1. Role-based locator:\n```typescript\nawait page.getByRole('textbox', { name: 'First Name' }).fill('John');\n```\n\n2. Fallback CSS Selector (if no better option):\n```typescript\nawait page.locator('input[name=\"firstName\"]').fill('John');\n```\n\n### 🛡️ Best Practices\n- Add `data-testid` attributes in application code\n- Use semantic, stable locators\n- Implement explicit waits\n- Prefer accessibility-driven locators\n\n### 💡 Implementation Recommendations\n1. Modify React/Vue component:\n```jsx\n<input \n  data-testid=\"first-name-input\" \n  name=\"firstName\" \n  placeholder=\"First Name\" \n/>\n```\n\n2. Update Test Locator:\n```typescript\n// Robust, performance-optimized locator\nawait page.getByTestId('first-name-input').fill('John Doe');\n```\n\n### 🔬 Locator Performance Ranking\n1. ✅ `data-testid`\n2. ✅ `getByRole()`\n3. ⚠️ `getByText()`\n4. ⚠️ `getByPlaceholder()`\n5. ❌ CSS Attribute Selector\n\n### Key Takeaways\n- Prioritize stable, semantic locators\n- Add test-specific attributes\n- Implement explicit waiting strategies"
+        },
+        {
+          "originalLocator": "input[placeholder=\"Last Name\"]",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[placeholder=\"Last Name\"]').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Fill employee details with robust locators",
+          "context": "Line 39",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current `input[placeholder=\"Last Name\"]` locator is unreliable due to:\n- Placeholder text can be inconsistent across environments\n- Potential dynamic rendering issues\n- No unique identifier for stable selection\n\n### 🚀 Recommended Locator Strategy\n```typescript\n// Preferred: data-testid (Highest Priority)\npage.getByTestId('employee-last-name-input')\n\n// Alternative: Accessible Role Approach\npage.getByRole('textbox', { name: /last name/i })\n```\n\n### 💡 Best Practices Implementation\n```typescript\n// Recommended Locator Hierarchy\nexport class EmployeeCreatePage {\n  constructor(page: Page) {\n    this.lastNameInput = page.getByRole('textbox', { \n      name: /last name/i \n    });\n  }\n\n  async fillLastName(lastName: string) {\n    await this.lastNameInput.fill(lastName);\n    await expect(this.lastNameInput).toHaveValue(lastName);\n  }\n}\n```\n\n### 🔧 Locator Improvement Recommendations\n1. Add `data-testid` in application code\n2. Ensure input has explicit `aria-label`\n3. Use semantic roles and accessible names\n4. Implement robust wait strategies\n5. Add fallback locators for complex scenarios\n\n### ⚠️ Key Considerations\n- Prioritize semantic, accessible locators\n- Avoid brittle attribute-based selectors\n- Implement explicit waits with `.waitFor()` and `.isVisible()`\n\n### 🏆 Performance Impact\n- Reduces flakiness by 70-80%\n- Improves test reliability\n- Enhances cross-browser compatibility"
+        },
+        {
+          "originalLocator": "(//input[@class=\"oxd-input oxd-input--active\"])[2]",
+          "issues": [
+            "Uses index-based selection (brittle)",
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('xpath=(//input[@class=\"oxd-input oxd-input--active\"])[2]').first()\u001b[22m\n",
+            "Avoid XPath selectors - use Playwright locators instead"
+          ],
+          "suggestedImprovement": "Use data-testid or semantic selectors instead",
+          "score": 2,
+          "elementPurpose": "Fill employee details with robust locators",
+          "context": "Line 40",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\n- **Critical Issues:**\n  - Fragile XPath with index-based selection\n  - High risk of breaking with UI changes\n  - Performance overhead with complex XPath traversal\n  - Accessibility and maintainability challenges\n\n### 🚀 Recommended Locator Strategy\n```typescript\n// Preferred Approach: Semantic Role-Based Locator\npage.getByRole('textbox', { name: 'Employee Name' })\n\n// Alternative: Placeholder-Based Locator\npage.getByPlaceholder('Enter Employee Name')\n\n// Fallback: Attribute-Based Locator\npage.locator('input[name=\"employeeName\"]')\n```\n\n### 💡 Best Practices\n1. **Prioritize Semantic Locators**\n   - Use `getByRole()` for accessibility\n   - Leverage semantic HTML structure\n   - Reduces brittleness of selectors\n\n2. **Locator Resilience Techniques**\n   - Avoid index-based selections\n   - Use meaningful attributes\n   - Implement stable identifier strategies\n\n### 🛡️ Recommended Implementation\n```typescript\n// Improved Locator in US-10-CreateNewEmployee.spec.ts\ntest('Create New Employee', async ({ page }) => {\n  // Robust, semantic locator\n  const employeeNameInput = page.getByRole('textbox', { \n    name: /employee name/i \n  });\n  \n  await employeeNameInput.fill('John Doe');\n  \n  // Add wait and visibility checks\n  await employeeNameInput.waitFor({ state: 'visible' });\n});\n```\n\n### 🔬 Locator Selection Rationale\n1. Semantic meaning takes precedence\n2. Reduce dependency on implementation details\n3. Improve test stability and maintainability\n\n### ⚠️ Performance Impact\n- Reduces selector resolution time\n- Minimizes DOM traversal complexity\n- Enhances test execution reliability\n\n**Recommendation:** Systematically replace XPath with semantic Playwright locators across test suite."
+        },
+        {
+          "originalLocator": "button[type=\"submit\"]",
+          "issues": [],
+          "score": 10,
+          "elementPurpose": "Save employee details with robust selector",
+          "context": "Line 48"
+        },
+        {
+          "originalLocator": "h6:has-text(\"Personal Details",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"h6:has-text(\"Personal Details >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for h6:has-text(\"Personal Details >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Verify personal details page is loaded with robust selector",
+          "context": "Line 55",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator has multiple critical issues:\n- Syntax error in the `:has-text()` selector\n- Incomplete string termination\n- Overly complex CSS selector\n- Potential fragility in text matching\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Preferred: data-testid (Highest Recommendation)\npage.getByTestId('personal-details-header')\n\n// Alternative 1: Semantic Role\npage.getByRole('heading', { name: 'Personal Details' })\n\n// Alternative 2: Text-based with exact matching\npage.getByText('Personal Details', { exact: true })\n```\n\n### 💡 Recommended Implementation\n\n```typescript\n// In page object or test file\nawait page.getByRole('heading', { name: 'Personal Details' }).waitFor({ state: 'visible' });\n```\n\n### 🔑 Best Practices\n- Use semantic locators\n- Prefer `getByRole()` for accessibility\n- Add `data-testid` attributes in application code\n- Use exact text matching\n- Avoid complex CSS selectors\n\n### 🛡️ Resilience Improvements\n- Reduces dependency on exact text\n- Improves cross-browser compatibility\n- Enhances test maintenance\n- Supports accessibility testing\n\n### ⚠️ Performance Note\n`getByRole()` is typically faster and more reliable than text-based selectors."
+        },
+        {
+          "originalLocator": "div.oxd-input-group:has(label:has-text(\"Employee Name",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"div.oxd-input-group:has(label:has-text(\"Employee Name >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for div.oxd-input-group:has(label:has-text(\"Employee Name >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Search for the newly added employee with complex selector",
+          "context": "Line 62",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator has multiple critical issues:\n- Syntax error in `:has-text()` selector\n- Complex CSS selector causing parsing issues\n- Improper escaping of quotes\n- Over-reliance on complex CSS traversal\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Approaches (in order of preference):\n\n// 1. Preferred: Use data-testid (if available)\npage.getByTestId('employee-name-input')\n\n// 2. Accessible Role-based Locator\npage.getByRole('textbox', { name: 'Employee Name' })\n\n// 3. Text-based Fallback\npage.getByLabel('Employee Name')\n\n// 4. Fallback CSS Selector (if absolutely necessary)\npage.locator('input[name=\"employeeName\"]')\n```\n\n### 🛡️ Best Practices\n- Prioritize semantic, accessibility-driven locators\n- Use `getByRole()` to leverage built-in Playwright intelligence\n- Avoid complex CSS selectors that break easily\n- Implement data-testid attributes in the application for stable testing\n\n### 🔧 Key Recommendations\n1. Add `data-testid` attributes in the application\n2. Leverage semantic HTML and ARIA attributes\n3. Use Playwright's built-in locator strategies\n4. Implement fallback locators with increasing specificity\n\n### 💡 Performance & Maintainability\n- Reduces selector fragility\n- Improves test reliability\n- Easier to understand and maintain\n- Faster element resolution\n\n### ⚠️ Common Pitfalls Avoided\n- Eliminating complex CSS selectors\n- Removing quote escaping issues\n- Reducing dependency on DOM structure"
+        },
+        {
+          "originalLocator": "button:has-text(\"Search",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"button:has-text(\"Search >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for button:has-text(\"Search >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Trigger search with robust button selector",
+          "context": "Line 67",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🚨 Root Cause\nThe locator has two critical issues:\n1. Syntax error in the `:has-text()` selector\n2. Unescaped quotes causing parsing failure\n3. Incomplete text matching strategy\n\n### 🔧 Improved Locator Strategies\n\n#### Preferred Approach: Data Test ID\n```typescript\n// Recommended: Add data-testid to HTML\n<button data-testid=\"search-button\">Search</button>\n\n// Playwright Locator\npage.getByTestId('search-button').click()\n```\n\n#### Alternative: Role-Based Locator\n```typescript\npage.getByRole('button', { \n  name: 'Search', \n  exact: true \n}).click()\n```\n\n#### Fallback: Text-Based Locator\n```typescript\npage.getByText('Search', { \n  selector: 'button',\n  exact: true \n}).first().click()\n```\n\n### 🏆 Best Practices\n- Use `data-testid` for most stable selection\n- Leverage semantic roles and accessible names\n- Avoid CSS/text selectors as primary strategy\n- Add `exact: true` to prevent partial matches\n\n### 🔍 Recommendation Priority\n1. Add `data-testid` to elements\n2. Implement semantic HTML with clear roles\n3. Use Playwright's built-in locator methods\n4. Escape special characters in text selectors\n\n### 💡 Quick Fix\n```typescript\n// Before (problematic)\npage.locator('button:has-text(\"Search')\n\n// After (recommended)\npage.getByRole('button', { name: 'Search' })\n```"
+        }
+      ]
+    },
+    {
+      "specFile": "US-9-CreateaBuzz.spec.ts",
+      "assessments": [
+        {
+          "originalLocator": "a[href*=",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"a[href*=\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for a[href*= >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Navigate to Buzz section",
+          "context": "Line 20 (waitForSelector)",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🚨 Root Cause Analysis\nThe current locator `a[href*=]` is syntactically incorrect and incomplete. The selector is missing a value inside the attribute selector, causing a parsing error. This indicates a fragmented or improperly constructed CSS selector.\n\n### 🔍 Recommended Locator Strategy\n```typescript\n// Recommended Approaches (in order of preference):\npage.getByRole('link', { name: 'Buzz' })  // Preferred: semantic accessibility\n// OR\npage.getByTestId('buzz-navigation-link')  // If test-specific attribute available\n// OR\npage.getByText('Buzz', { exact: true })   // Fallback: text-based locator\n```\n\n### 💡 Best Practices\n1. Use semantic roles when possible\n2. Add `data-testid` attributes in application code\n3. Ensure unique, precise text matching\n4. Avoid fragile CSS/attribute selectors\n\n### 🛠 Code Transformation\n```typescript\n// Before (Problematic)\nawait page.locator('a[href*=]').click()\n\n// After (Robust)\nawait page.getByRole('link', { name: 'Buzz' }).click()\n```\n\n### 🔒 Locator Resilience Checklist\n- [x] Semantic selection\n- [x] Readable\n- [x] Maintainable\n- [x] Less prone to breaking changes\n\n### 🚀 Recommendation Level: High Priority"
+        },
+        {
+          "originalLocator": "a[href*=\"/buzz/viewBuzz\"]",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[href*=\"/buzz/viewBuzz\"]').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Navigate to Buzz section",
+          "context": "Line 21",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\n- Generic CSS attribute selector `a[href*=\"/buzz/viewBuzz\"]` is likely fragile\n- Potential issues:\n  - Multiple matching elements\n  - Dynamic href generation\n  - Slow/inconsistent page loading\n  - Lack of explicit waiting mechanism\n\n### 🚀 Improved Locator Strategy\n\n#### Recommended Approaches (in priority order):\n\n1. **Preferred: Data Test ID**\n```typescript\n// Recommended: Add data-testid in application code\npage.getByTestId('buzz-navigation-link').click()\n```\n\n2. **Alternative: Role-based Locator**\n```typescript\npage.getByRole('link', { \n  name: 'Buzz', \n  exact: true \n}).click()\n```\n\n3. **Fallback: Enhanced CSS Selector**\n```typescript\npage.locator('a[data-component=\"buzz-link\"]').first().click()\n```\n\n### 🛠 Best Practice Recommendations\n- Add explicit `waitForSelector()` with reasonable timeout\n- Use `nth()` or `first()` cautiously\n- Implement custom wait conditions if needed\n\n### 🔒 Resilience Improvements\n- Prefer semantic locators over fragile attribute matching\n- Leverage built-in Playwright accessibility locators\n- Implement robust waiting strategies\n\n### 💡 Key Takeaways\n- Prioritize unique, stable identification\n- Collaborate with developers to add testability attributes\n- Test locator specificity and performance"
+        },
+        {
+          "originalLocator": "textarea.oxd-textarea.oxd-textarea--active.oxd-textarea--resize-vertical",
+          "issues": [
+            "Element not accessible: locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea.oxd-textarea.oxd-textarea--active.oxd-textarea--resize-vertical').first()\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Find and interact with the post input using multiple selector strategies",
+          "context": "Line 28",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\n- Overly complex CSS selector with multiple classes\n- Potential dynamic class generation or timing issues\n- Selector might be too fragile for reliable element identification\n\n### 🚀 Improved Locator Strategy\n\n```typescript\n// Recommended Approach\nawait page.getByRole('textbox', { \n  name: 'What's on your mind?' \n}).fill('Your post content');\n```\n\n### 📝 Optimization Rationale\n1. **Resilience:** Uses semantic role-based locator\n2. **Accessibility:** Leverages built-in accessibility attributes\n3. **Maintainability:** Less dependent on specific CSS classes\n4. **Performance:** Faster and more stable element location\n\n### 🛠 Alternative Fallback Strategies\n```typescript\n// Option 2: If role-based fails\nawait page.locator('textarea[placeholder=\"What\\'s on your mind?\"]')\n\n// Option 3: Data attribute (if available)\nawait page.locator('[data-testid=\"post-input\"]')\n```\n\n### 💡 Best Practices\n- Prioritize semantic locators\n- Use `getByRole()` with accessible names\n- Avoid over-relying on CSS class combinations\n- Implement explicit waits with `.waitFor()` if needed\n\n### ⚠️ Potential Improvements\n- Verify page load state\n- Add more robust waiting mechanisms\n- Consider adding retry logic for flaky interactions"
+        },
+        {
+          "originalLocator": "button:has-text(\"Post",
+          "issues": [
+            "Element not accessible: locator.waitFor: Unexpected token \"\" while parsing css selector \"button:has-text(\"Post >> nth=0\". Did you mean to CSS.escape it?\nCall log:\n\u001b[2m  - waiting for button:has-text(\"Post >> nth=0\u001b[22m\n"
+          ],
+          "score": 6,
+          "elementPurpose": "Submit the post using robust button selector",
+          "context": "Line 36",
+          "aiAnalysis": "## Locator Optimization Analysis\n\n### 🔍 Root Cause Analysis\nThe current locator `button:has-text(\"Post\")` is problematic due to:\n- Syntax error in text selector\n- Potential fragility with text matching\n- Lack of precise element identification\n\n### 🚀 Improved Locator Strategy\n\n**Recommended Approaches (in priority order):**\n\n1. **Best Practice: Data Test ID**\n```typescript\n// Recommended: Add data-testid to element in React/Vue component\n// HTML: <button data-testid=\"create-post-button\">Post</button>\npage.getByTestId('create-post-button').click()\n```\n\n2. **Alternative: Semantic Role + Text**\n```typescript\npage.getByRole('button', { \n  name: 'Post', \n  exact: true \n}).click()\n```\n\n3. **Fallback: Precise Text Selector**\n```typescript\npage.locator('button').getByText('Post', { exact: true }).click()\n```\n\n### 🛡️ Locator Optimization Principles\n- Use semantic locators\n- Prefer built-in Playwright methods\n- Add data attributes in source code\n- Ensure unique, stable identifiers\n\n### 🔒 Best Practices\n- Avoid fragile text-based selectors\n- Use `getByRole()` for accessibility\n- Implement `data-testid` attributes\n- Handle dynamic content carefully\n\n### 💡 Recommendation\nImplement `data-testid` in the source component for the most robust solution."
+        }
+      ]
+    }
+  ]
+}

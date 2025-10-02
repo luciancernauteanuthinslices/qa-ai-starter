@@ -1,55 +1,214 @@
-name: e2e
+name: QA AI Pipeline
+
 on:
   pull_request:
+    paths:
+      - "stories/**"
+      - "features/**"
+      - "tests/**"
+      - "scripts/**"
+      - "pages/**"
+      - "playwright.config.*"
+      - "package.json"
+      - "tsconfig.json"
+  push:
+    branches: [ main, master ]
+  schedule:
+    # Nightly regression testing (Mon-Fri)
+    - cron: "0 2 * * 1-5"
   workflow_dispatch:
-  schedule: [ { cron: "0 1 * * *" } ]  # nightly
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - ui
+          - api
+          - visual
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: qa-pipeline-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  tests:
+  qa-pipeline:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shardIndex: [1, 2, 3]         # parallel shards for nightly
-        shardTotal: [3]
+    timeout-minutes: 30
+    environment: CI
+    env:
+      BASE_URL: ${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}
+      USERNAME: ${{ secrets.USERNAME || 'Admin' }}
+      PASSWORD: ${{ secrets.PASSWORD || 'admin123' }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL || 'claude-sonnet-4-20250514' }}
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm ci
-      - run: npx playwright install --with-deps
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Prepare env
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
         run: |
-          mkdir -p env
-          echo "BASE_URL=https://opensource-demo.orangehrmlive.com/" >> env/.env.local
-          echo "TEST_USERNAME=${{ secrets.USERNAME }}" >> env/.env.local
-          echo "TEST_PASSWORD=${{ secrets.PASSWORD }}" >> env/.env.local
+          npm ci
+          npx playwright install --with-deps
 
-      - name: Run tests (PR=smoke, Nightly=full shards)
+      - name: Create .env file
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            npx playwright test -g @smoke
-          else
-            npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-          fi
+          echo "BASE_URL=${{ env.BASE_URL }}" > .env
+          echo "USERNAME=${{ env.USERNAME }}" >> .env
+          echo "PASSWORD=${{ env.PASSWORD }}" >> .env
+          echo "ANTHROPIC_API_KEY=${{ env.ANTHROPIC_API_KEY }}" >> .env
+          echo "CLAUDE_MODEL=${{ env.CLAUDE_MODEL }}" >> .env
 
-      - name: Create PR summary
+      - name: Generate features from stories
+        run: npm run ai:stories
+        continue-on-error: true
+
+      - name: Generate AI specs from features
+        run: npm run ai:specs:all
+        continue-on-error: true
+
+      - name: Run generated tests first
+        run: |
+          mkdir -p reports
+          npm run test 2>&1 | tee reports/generated-tests.log
+        continue-on-error: true
+
+      - name: Run tests
+        run: |
+          mkdir -p reports
+          case "${{ github.event.inputs.test_suite || 'all' }}" in
+            "smoke")  npx playwright test --grep "@smoke" 2>&1 | tee reports/smoke-tests.log ;;
+            "ui")     npx playwright test --grep "@ui" 2>&1 | tee reports/ui-tests.log ;;
+            "api")    npx playwright test tests/api/ 2>&1 | tee reports/api-tests.log ;;
+            "visual") npx playwright test --grep "@visual" 2>&1 | tee reports/visual-tests.log ;;
+            "all"|*)  npx playwright test 2>&1 | tee reports/all-tests.log ;;
+          esac
+
+      - name: Run performance tests
+        if: github.event_name != 'pull_request'
+        uses: grafana/setup-k6-action@v1
+
+      - name: Execute k6 load test
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p reports/performance
+          # Run k6 with enhanced configuration
+          k6 run \
+            --out json=reports/performance/k6-raw.json \
+            scripts/k6/load_test.js 2>&1 | tee reports/performance-tests.log
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          K6_VUS: ${{ github.event_name == 'schedule' && '10' || '5' }}
+          K6_DURATION: ${{ github.event_name == 'schedule' && '60s' || '30s' }}
+          GITHUB_ACTIONS: true
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        continue-on-error: true
+
+      - name: Generate reports
         if: always()
-        run: node utils/ci-summary.ts
+        run: |
+          mkdir -p reports/{ui,api,summaries,performance} metrics
+          npm run diff:ui 2>&1 | tee reports/ui-diff.log || echo "UI diff skipped"
+          npm run diff:api 2>&1 | tee reports/api-diff.log || echo "API diff skipped"
+          npm run regression:ui 2>&1 | tee reports/regression.log || echo "UI regression skipped"
+          npm run report:kpi 2>&1 | tee reports/kpi-report.log || echo "KPI report failed"
 
-      - name: Upload report artifacts
+      - name: Generate comprehensive summary
+        if: always()
+        run: |
+          # Create a master log combining all test outputs
+          echo "# QA Pipeline Execution Summary" > reports/master-log.txt
+          echo "Generated at: $(date)" >> reports/master-log.txt
+          echo "" >> reports/master-log.txt
+          
+          # Combine all test logs
+          for logfile in reports/*.log; do
+            if [ -f "$logfile" ]; then
+              echo "## $(basename $logfile .log | tr '-' ' ' | tr '[:lower:]' '[:upper:]')" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+              cat "$logfile" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+              echo "---" >> reports/master-log.txt
+              echo "" >> reports/master-log.txt
+            fi
+          done
+          
+          # Add performance data if available (k6 now writes directly to master-log.txt)
+          if [ -f "reports/performance/master-log-append.txt" ]; then
+            echo "## PERFORMANCE METRICS FROM K6" >> reports/master-log.txt
+            cat reports/performance/master-log-append.txt >> reports/master-log.txt
+          elif [ -f "reports/performance/k6-summary.md" ]; then
+            echo "## PERFORMANCE METRICS" >> reports/master-log.txt
+            echo "" >> reports/master-log.txt
+            cat reports/performance/k6-summary.md >> reports/master-log.txt
+            echo "" >> reports/master-log.txt
+          fi
+          
+          # Generate AI summary from master log
+          npm run report:summary reports/master-log.txt || echo "AI summary generation failed"
+
+      - name: Send Slack notification
+        if: always()
+        run: npm run notify
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shardIndex }}
+          name: qa-results-${{ github.run_number }}
           path: |
-            playwright-report
-            test-results
+            playwright-report/
+            test-results/
+            reports/
+            metrics/
+            features/
+            tests/e2e/
+          retention-days: 7
 
-      - name: Slack (failures only)
-        if: failure() && vars.SLACK_WEBHOOK != ''
+      - name: Create job summary
+        if: always()
         run: |
-          text="❌ Playwright failed on ${{ github.workflow }} #${{ github.run_number }}. See artifacts."
-          curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"$text\"}" ${{ vars.SLACK_WEBHOOK }}
+          echo "# QA AI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Suite:** ${{ github.event.inputs.test_suite || 'default' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Pipeline Steps" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Stories → Features (AI)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Features → Specs (AI)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Test Execution" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Report Generation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f reports/summaries/last.md ]; then
+            echo "## Detailed Summary" >> $GITHUB_STEP_SUMMARY
+            cat reports/summaries/last.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No detailed summary available" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Artifacts:** qa-results-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY

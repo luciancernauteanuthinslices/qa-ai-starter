@@ -1,0 +1,20 @@
+id: US-12
+title: Add New Candidate 
+as_a: User
+i_want: to access the Recruitment page
+and: click on Add to Add Candidate
+then: I can complete all the fields and save the candidate
+so_that: I can vire the created candidate in recruitment page
+
+
+acceptance_criteria:
+  - Given I am logged in and on the dashboard page
+  - When I click on Recruitment button on the sidebar
+  - Then Recruitment page is accessed
+  - And I can complete email field for a new Candidate
+  - And then click on Save button to save the candidate
+  - Then I can see Candidate Full Name in the Candidate Profile
+
+notes: |
+  This story focuses on creating and saving a new candidate from recruitment page
+  Use .auth/admin.json to skip log in 

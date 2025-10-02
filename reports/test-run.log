@@ -1,0 +1,4 @@
+PASS example test
+FAIL another test - timeout
+✓ Login test passed
+❌ Dashboard test failed - element not found

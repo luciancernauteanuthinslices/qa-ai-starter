@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "ES2022",
+      "module": "ESNext",
+      "moduleResolution": "node",
+      "baseUrl": ".",
+      "paths": {
+        "@pages/*": ["pages/*"]
+      },
+      "resolveJsonModule": true,
+      "types": ["node", "k6"],
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "dist"
+    },
+    "include": ["scripts/**/*.ts", "tests/**/*.ts", "pages/**/*.ts", "utils/**/*.ts", "playwright.config.ts", "global.d.ts"]
+  }
