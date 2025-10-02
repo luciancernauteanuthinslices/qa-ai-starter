@@ -125,6 +125,44 @@ function fixImportPaths(code: string, importBase: string): string {
   return code.replace(/(['"])(?:\.?\.\/)+pages\//g, `$1${normalized}/`);
 }
 
+// ------------------------ Locator Extraction Integration ------------------------
+
+async function runLocatorExtraction(): Promise<void> {
+  console.log('[ai] Running locator extraction to update POMs...');
+  
+  const { spawn } = await import('child_process');
+  
+  return new Promise((resolve, reject) => {
+    // Use cmd.exe on Windows to properly handle npx
+    const isWindows = process.platform === 'win32';
+    const command = isWindows ? 'cmd' : 'npx';
+    const args = isWindows 
+      ? ['/c', 'npx', 'tsx', 'scripts/new-extract-locators.ts']
+      : ['tsx', 'scripts/new-extract-locators.ts'];
+    
+    const extractorProcess = spawn(command, args, {
+      stdio: 'inherit',
+      cwd: process.cwd(),
+      shell: isWindows
+    });
+    
+    extractorProcess.on('close', (code) => {
+      if (code === 0) {
+        console.log('[ai] ✅ Locator extraction completed successfully');
+        resolve();
+      } else {
+        console.warn(`[ai] ⚠️ Locator extraction exited with code ${code}, continuing...`);
+        resolve(); // Continue even if extraction fails
+      }
+    });
+    
+    extractorProcess.on('error', (error) => {
+      console.warn(`[ai] ⚠️ Locator extraction error: ${error.message}, continuing...`);
+      resolve(); // Continue even if extraction fails
+    });
+  });
+}
+
 // ------------------------ Page Configuration Loading ------------------------
 
 function loadPageConfig(configPath: string): PageUrlsConfig {
@@ -529,10 +567,52 @@ CRITICAL REQUIREMENTS:
 - Use selectOption() for dropdown selections instead of click()
 - Generate unique test data at runtime when needed
 
+AUTHENTICATION PATTERN:
+For tests requiring login, use this standardized pattern:
+\`\`\`typescript
+test.describe('Test Suite Name', () => {
+  let loginPage: LoginPage;
+  let dashboardPage: DashboardPage;
+  // Add other required page objects
+
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    
+    loginPage = new LoginPage(page);
+    dashboardPage = new DashboardPage(page);
+    
+    // Perform login once for all tests
+    await page.goto(process.env.BASE_URL || 'https://opensource-demo.orangehrmlive.com');
+    await loginPage.doLogin(
+      process.env.USERNAME || 'Admin',
+      process.env.PASSWORD || 'admin123'
+    );
+    
+    // Save authentication state
+    await context.storageState({ path: '.auth/admin.json' });
+    await context.close();
+  });
+
+  test.use({ storageState: '.auth/admin.json' });
+  
+  // Individual tests here...
+});
+\`\`\`
+
 PAGE OBJECT INTEGRATION:
 ${usePoms ? '- MUST use existing page object methods when available' : '- Create inline helper methods if needed'}
-- Import page objects from the provided structure
+- Import ALL required page objects from pages/ directory
+- Auto-detect and import page objects based on test requirements (LoginPage, DashboardPage, Sidebar, etc.)
 - Follow the established naming conventions
+- Use page object methods instead of raw locators
+
+AUTOMATIC IMPORTS:
+Always include these imports based on test needs:
+- LoginPage: For any test requiring authentication
+- DashboardPage: For tests starting from or verifying dashboard
+- Sidebar: For navigation between modules
+- Specific module pages (AdminPage, PIMPage, BuzzPage, etc.) based on feature content
 
 ENVIRONMENT VARIABLES AVAILABLE:
 ${envKeys.length > 0 ? envKeys.map(k => `- process.env.${k}`).join('\n') : '- No environment variables detected'}
@@ -589,8 +669,36 @@ function buildUserPrompt(
     prompt += `${envSummary}\n\n`;
   }
   
-  prompt += `INSTRUCTIONS:\n`;
+  // Add automatic import detection based on feature content
+  prompt += `REQUIRED IMPORTS DETECTION:\n`;
+  prompt += `Based on the feature content, automatically import these page objects:\n`;
+  prompt += `- LoginPage: ALWAYS import for authentication (from '../../../pages/LoginPage/LoginPage')\n`;
+  prompt += `- DashboardPage: Import if feature mentions dashboard, home, or main page (from '../../../pages/DashboardPage/DashboardPage')\n`;
+  prompt += `- Sidebar: Import if feature involves navigation between modules (from '../../../pages/Sidebar/Sidebar')\n`;
+  
+  // Detect specific modules from feature content
+  const featureLower = featureText.toLowerCase();
+  if (featureLower.includes('admin') || featureLower.includes('user management')) {
+    prompt += `- AdminPage: Import for admin-related features (from '../../../pages/AdminPage/AdminPage')\n`;
+  }
+  if (featureLower.includes('pim') || featureLower.includes('employee') || featureLower.includes('personal')) {
+    prompt += `- PIMPage: Import for employee/PIM features (from '../../../pages/PIMPage/PIMPage')\n`;
+  }
+  if (featureLower.includes('buzz') || featureLower.includes('post') || featureLower.includes('message')) {
+    prompt += `- BuzzPage: Import for buzz/social features (from '../../../pages/BuzzPage/BuzzPage')\n`;
+  }
+  if (featureLower.includes('time') || featureLower.includes('timesheet')) {
+    prompt += `- TimePage: Import for time management features (from '../../../pages/TimePage/TimePage')\n`;
+  }
+  if (featureLower.includes('leave') || featureLower.includes('vacation')) {
+    prompt += `- LeavePage: Import for leave management features (from '../../../pages/LeavePage/LeavePage')\n`;
+  }
+  
+  prompt += `\nINSTRUCTIONS:\n`;
   prompt += `1. Use the MCP-discovered locators and page objects when available\n`;
+  prompt += `2. Import ALL required page objects based on feature content analysis above\n`;
+  prompt += `3. Use beforeAll pattern for login setup if authentication is required\n`;
+  prompt += `4. Prefer page object methods over raw locators\n`;
   prompt += `2. Create a complete test that covers the feature requirements\n`;
   prompt += `3. Include proper error handling and assertions\n`;
   prompt += `4. Follow Playwright best practices for reliable tests\n`;
@@ -878,6 +986,11 @@ fs.writeFileSync(outFile, placeholderCode, 'utf8');
 async function main() {
   const f = readFlags();
   ensureDirs(f);
+
+  // Run locator extraction to update POMs before spec generation
+  if (f.usePoms) {
+    await runLocatorExtraction();
+  }
 
   // import path base from output spec dir → pages dir (e.g., "../../pages")
   const importBase = path.relative(f.outDir, f.pagesDir).split(path.sep).join('/');

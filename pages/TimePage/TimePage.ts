@@ -1,11 +1,11 @@
 import { Locator, Page, expect } from '@playwright/test';
 
 /**
- * Main dashboard page
- * Auto-generated with targeted locators from: https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index
+ * Page for user Timesheets
+ * Auto-generated with targeted locators from: https://opensource-demo.orangehrmlive.com/web/index.php/time/viewEmployeeTimesheet
  * Elements: 1 (optimized for feature requirements)
  */
-export class DashboardPage {
+export default class TimePage {
   dashboard: Locator;
 
   constructor(private page: Page) {
@@ -14,7 +14,7 @@ export class DashboardPage {
 
   // Navigation
   async navigate() {
-    await this.page.goto('https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index');
+    await this.page.goto('https://opensource-demo.orangehrmlive.com/web/index.php/time/viewEmployeeTimesheet');
     await this.page.waitForLoadState('domcontentloaded');
   }
 

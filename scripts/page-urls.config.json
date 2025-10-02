@@ -39,10 +39,18 @@
         "url": "https://opensource-demo.orangehrmlive.com/web/index.php/buzz/viewBuzz",
         "name": "Buzz",
         "description": "Page for writing and posting messages to Dashboard"
+      },
+      {
+        "url": "https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/addCandidate",
+        "name": "Add Candidate",
+        "description": "Page for adding and saving a new candidate"
       }
   ],
   "auth": {
-    "storageState": ".auth/admin.json"
+    "storageState": ".auth/admin.json",
+    "loginUrl": "https://opensource-demo.orangehrmlive.com/web/index.php/auth/login",
+    "username": "Admin",
+    "password": "admin123"
   },
   "outputDir": "pages"
 }

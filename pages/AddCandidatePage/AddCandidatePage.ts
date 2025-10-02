@@ -1,11 +1,11 @@
 import { Locator, Page, expect } from '@playwright/test';
 
 /**
- * Main dashboard page
- * Auto-generated with targeted locators from: https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index
+ * Page for adding and saving a new candidate
+ * Auto-generated with targeted locators from: https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/addCandidate
  * Elements: 1 (optimized for feature requirements)
  */
-export class DashboardPage {
+export default class AddCandidatePage {
   dashboard: Locator;
 
   constructor(private page: Page) {
@@ -14,7 +14,7 @@ export class DashboardPage {
 
   // Navigation
   async navigate() {
-    await this.page.goto('https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index');
+    await this.page.goto('https://opensource-demo.orangehrmlive.com/web/index.php/recruitment/addCandidate');
     await this.page.waitForLoadState('domcontentloaded');
   }
 

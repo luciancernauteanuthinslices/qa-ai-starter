@@ -8,6 +8,8 @@ export class Sidebar {
     adminHeading: Locator;
     PIMButton: Locator;
     PIMHeading: Locator;
+    timeButton:Locator;
+    timeHeading: Locator;
 
 
     constructor(private page: Page) { 
@@ -15,6 +17,9 @@ export class Sidebar {
         this.PIMButton = this.page.getByRole('link', { name: 'PIM' });
         this.adminHeading = this.page.getByRole('heading', { name: 'System Users' });
         this.PIMHeading = this.page.getByRole('heading', { name: 'PIM' });
+        this.timeButton = this.page.getByRole('link', { name: 'Time' });
+        this.adminHeading = this.page.getByRole('heading', { name: 'System Users' });
+        this.timeHeading = this.page.locator('h6:has-text("Timesheets Pending Action")');
     }
 
     async goToAdmin(){
@@ -31,4 +36,13 @@ export class Sidebar {
     async expectPIMHeading(){
         await expect(this.PIMHeading).toBeVisible()
     }
+
+    async goToTimePage(){
+        await this.timeButton.click()
+    }
+
+    async expectTimeHeading(){
+        await expect(this.timeHeading).toBeVisible()
+    }
+
 }
